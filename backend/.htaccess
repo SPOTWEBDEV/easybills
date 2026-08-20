@@ -1,7 +1,21 @@
-# If your hosting control panel points the domain at this project's root
-# (instead of directly at /public), this redirects everything into public/.
-# If you can set the document root to /public directly, you can delete
-# this file.
+# ============================================================
+# Root .htaccess for a cPanel subdomain deployment, e.g.
+# api.easybills-app.top pointed at this project's folder.
+#
+# This assumes the subdomain's document root is THIS folder (the one
+# containing this .htaccess, public/, src/, database/, etc.) — NOT
+# pointed directly at public/. It routes every request into
+# public/index.php while keeping the URL path exactly as the browser
+# sent it, so routes.php's route definitions like "/api/v1/auth/login"
+# keep matching correctly with no changes needed there, and real static
+# files (e.g. public/uploads/*) are still served directly by Apache.
+#
+# If your host instead lets you set the subdomain's document root
+# directly to public/ (cPanel's "Create A New Domain" flow usually lets
+# you type any path as the document root, including .../public), do
+# that instead and delete this file — it's simpler and one less layer.
+# ============================================================
 RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^(.*)$ /public/$1 [L]
+RewriteBase /
+
+RewriteRule ^(.*)$ public/$1 [L]
