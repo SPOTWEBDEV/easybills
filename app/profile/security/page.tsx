@@ -88,7 +88,7 @@ export default function SecurityPage() {
               </span>
               <CardTitle>Transaction PIN</CardTitle>
             </div>
-            <CardDescription>Required to confirm every purchase and withdrawal.</CardDescription>
+            <CardDescription>Required to confirm every purchase.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-2">
             <OtpInput value={pin} onChange={setPin} numInputs={4} />

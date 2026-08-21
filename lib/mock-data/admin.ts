@@ -351,7 +351,6 @@ export const adminRoles: AdminRole[] = [
 
 export const adminAuditLogs: AdminAuditLog[] = [
   { id: "adt_001", actor: "admin@easybills.example", action: "Updated pricing rule", target: "MTN Data Bundles", timestamp: hoursAgo(2), ipAddress: "197.210.55.12" },
-  { id: "adt_002", actor: "finance@easybills.example", action: "Approved withdrawal", target: "usr_003 — ₦45,000", timestamp: hoursAgo(4), ipAddress: "197.210.55.44" },
   { id: "adt_003", actor: "admin@easybills.example", action: "Suspended user account", target: "usr_004 — Funmilayo Ade", timestamp: daysAgo(1), ipAddress: "197.210.55.12" },
   { id: "adt_004", actor: "support@easybills.example", action: "Resolved support ticket", target: "tkt_004", timestamp: daysAgo(2), ipAddress: "105.112.9.201" },
   { id: "adt_005", actor: "admin@easybills.example", action: "Generated API key", target: "Mobile App — Production", timestamp: daysAgo(5), ipAddress: "197.210.55.12" },
@@ -374,8 +373,4 @@ export const adminApiKeys: AdminApiKey[] = [
   { id: "key_004", label: "Partner Sandbox", keyPreview: "eb_test_77dd...4b21", createdAt: daysAgo(15), lastUsed: daysAgo(2), status: "active" },
 ];
 
-export const pendingWithdrawals = [
-  { id: "wd_001", customer: "Bashir Mohammed", amount: 45000, bank: "GTBank", accountNumber: "0123456789", requestedAt: hoursAgo(2) },
-  { id: "wd_002", customer: "Tunde Bakare", amount: 120000, bank: "Zenith Bank", accountNumber: "0198765432", requestedAt: hoursAgo(6) },
-  { id: "wd_003", customer: "Blessing Eze", amount: 20000, bank: "Access Bank", accountNumber: "0055667788", requestedAt: hoursAgo(10) },
-];
+

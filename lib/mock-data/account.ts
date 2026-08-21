@@ -117,17 +117,5 @@ export const mockTransactions: Transaction[] = [
     provider: "Glo",
     recipient: "0805 221 9034",
     balanceAfter: 47150.75,
-  },
-  {
-    id: "txn_1008",
-    reference: "KCT-64420ZP2",
-    category: "withdrawal",
-    title: "Withdrawal to GTBank",
-    subtitle: "**** 4471",
-    amount: 15000,
-    fee: 25,
-    status: "success",
-    date: hoursAgo(96),
-    balanceAfter: 49150.75,
-  },
+  }
 ];

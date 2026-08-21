@@ -17,9 +17,8 @@ export default function WalletPage() {
   const { data: wallet, isLoading } = useWallet();
   const { data: transactions } = useTransactions();
 
-  const walletTxns = transactions?.filter(
-    (t) => t.category === "wallet-funding" || t.category === "withdrawal"
-  );
+  
+  const walletTxns = transactions?.filter((t) => t.category === "wallet-funding");
 
   const copyAccount = () => {
     if (!wallet) return;

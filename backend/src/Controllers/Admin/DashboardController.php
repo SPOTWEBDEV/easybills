@@ -18,7 +18,7 @@ class DashboardController
         )->fetch(PDO::FETCH_ASSOC);
 
         $salesCount = $db->query(
-            "SELECT COUNT(*) AS total FROM transactions WHERE status = 'success' AND category NOT IN ('wallet-funding','withdrawal')"
+            "SELECT COUNT(*) AS total FROM transactions WHERE status = 'success' AND category != 'wallet-funding'"
         )->fetch(PDO::FETCH_ASSOC);
 
         $txnCount = $db->query('SELECT COUNT(*) AS total FROM transactions')->fetch(PDO::FETCH_ASSOC);
@@ -46,7 +46,7 @@ class DashboardController
              ORDER BY yr ASC, mo ASC"
         );
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        Response::success(array_map(fn ($r) => [
+        Response::success(array_map(fn($r) => [
             'month' => $r['month'],
             'revenue' => (float) $r['revenue'],
             'sales' => (int) $r['sales'],
@@ -58,12 +58,12 @@ class DashboardController
         $db = Database::connection();
         $stmt = $db->query(
             "SELECT category AS name, COUNT(*) AS count FROM transactions
-             WHERE status = 'success' AND category NOT IN ('wallet-funding','withdrawal')
+             WHERE status = 'success' AND category NOT IN ('wallet-funding')
              GROUP BY category ORDER BY count DESC"
         );
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $total = array_sum(array_column($rows, 'count')) ?: 1;
-        Response::success(array_map(fn ($r) => [
+        Response::success(array_map(fn($r) => [
             'name' => ucfirst($r['name']),
             'value' => (int) round(($r['count'] / $total) * 100),
         ], $rows));

@@ -12,7 +12,6 @@ const categoryIcons: Record<TransactionCategory, React.ElementType> = {
   water: Droplets,
   "exam-pin": GraduationCap,
   "wallet-funding": ArrowDownToLine,
-  withdrawal: ArrowUpFromLine,
   betting: Dices,
 };
 

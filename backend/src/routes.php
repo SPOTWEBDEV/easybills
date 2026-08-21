@@ -8,7 +8,6 @@ use App\Controllers\Admin\PricingController;
 use App\Controllers\Admin\ProductController;
 use App\Controllers\Admin\ProviderController as AdminProviderController;
 use App\Controllers\Admin\TransactionController as AdminTransactionController;
-use App\Controllers\Admin\WithdrawalController;
 use App\Controllers\AirtimeController;
 use App\Controllers\AuthController;
 use App\Controllers\DataController;
@@ -54,7 +53,7 @@ $wallet = new WalletController();
 $router->get('/api/v1/wallet', [$wallet, 'show'], [$authMw]);
 $router->post('/api/v1/wallet/fund', [$wallet, 'fund'], [$authMw]);
 $router->post('/api/v1/wallet/fund/initialize', [$wallet, 'initializeFunding'], [$authMw]);
-$router->post('/api/v1/wallet/withdraw', [$wallet, 'withdraw'], [$authMw]);
+
 
 // Paystack calls this directly — no user JWT (it's authenticated via the
 // x-paystack-signature header instead, verified inside the controller).
@@ -109,11 +108,6 @@ $router->post('/api/v1/admin/customers/{id}/reactivate', [$customers, 'reactivat
 
 $adminTxns = new AdminTransactionController();
 $router->get('/api/v1/admin/transactions', [$adminTxns, 'index'], [$adminMw]);
-
-$withdrawals = new WithdrawalController();
-$router->get('/api/v1/admin/withdrawals/pending', [$withdrawals, 'pending'], [$adminMw]);
-$router->post('/api/v1/admin/withdrawals/{id}/approve', [$withdrawals, 'approve'], [$adminMw]);
-$router->post('/api/v1/admin/withdrawals/{id}/reject', [$withdrawals, 'reject'], [$adminMw]);
 
 $products = new ProductController();
 $router->get('/api/v1/admin/products', [$products, 'index'], [$adminMw]);

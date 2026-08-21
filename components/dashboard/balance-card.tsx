@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Plus, ArrowUpRight, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { NotchCard } from "@/components/shared/notch-card";
 import { formatNaira } from "@/lib/utils";
@@ -63,7 +63,7 @@ export function BalanceCard({ wallet }: { wallet: Wallet }) {
         </p>
       </div>
 
-      <div className="relative z-10 grid grid-cols-2 divide-x divide-white/10 px-2 py-3">
+      <div className="relative z-10 px-2 py-3">
         <Link
           href="/wallet/fund"
           className="flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-white/10"
@@ -72,15 +72,6 @@ export function BalanceCard({ wallet }: { wallet: Wallet }) {
             <Plus className="h-4 w-4" />
           </span>
           Fund wallet
-        </Link>
-        <Link
-          href="/wallet/withdraw"
-          className="flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors hover:bg-white/10"
-        >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15">
-            <ArrowUpRight className="h-4 w-4" />
-          </span>
-          Withdraw
         </Link>
       </div>
     </NotchCard>

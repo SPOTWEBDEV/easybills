@@ -53,9 +53,4 @@ export const fundWalletSchema = z.object({
 });
 export type FundWalletInput = z.infer<typeof fundWalletSchema>;
 
-export const withdrawSchema = z.object({
-  amount: z.coerce.number().min(500, "Minimum withdrawal is ₦500."),
-  bankName: z.string().min(2, "Select a bank."),
-  accountNumber: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit account number."),
-});
-export type WithdrawInput = z.infer<typeof withdrawSchema>;
+

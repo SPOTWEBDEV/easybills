@@ -64,10 +64,10 @@ For this to work end-to-end you need:
 ## What's fully connected to the backend
 
 - **Auth**: register, OTP verify, login, forgot/reset password, logout, current-user fetch
-- **Wallet**: balance, real Paystack funding (initialize + webhook-confirmed), withdrawal
+- **Wallet**: balance, real Paystack funding (initialize + webhook-confirmed)
 - **Services**: Airtime, Data (with real ePINs-backed providers/plans), Electricity (with meter lookup) — purchases call the real backend, which calls ePINs, with automatic wallet refund if the provider call fails
 - **Transactions**: history, detail, summary, CSV statement export
-- **Admin**: login (with real session, previously had none), Dashboard (stats + revenue trend + top services, all computed from real transaction rows), Customers, Transactions, Orders, Sales, Revenue, Analytics, Wallets (withdrawal approve/reject — reject auto-refunds the wallet), Products, Pricing, Profit Settings (editing margins is real and immediately affects future purchase prices), Bill Providers (plus a live ePINs connectivity check), Coupons (list + real create)
+- **Admin**: login (with real session, previously had none), Dashboard (stats + revenue trend + top services, all computed from real transaction rows), Customers, Transactions, Orders, Sales, Revenue, Analytics, Wallets, Products, Pricing, Profit Settings (editing margins is real and immediately affects future purchase prices), Bill Providers (plus a live ePINs connectivity check), Coupons (list + real create)
 
 ## What's still preview/mock data
 

@@ -142,11 +142,11 @@ src/
   Models/            Thin PDO data-access classes (User, Wallet,
                       Transaction, NetworkProvider, DataPlan,
                       ElectricityProvider, PricingRule, Otp, AdminUser,
-                      Coupon, Withdrawal, AuditLog)
+                      Coupon, AuditLog)
   Controllers/        Auth, Wallet, PaystackWebhook, Airtime, Data,
                        Electricity, Transaction, Statement
   Controllers/Admin/   AdminAuth, Dashboard, Customer, Transaction,
-                       Withdrawal, Product, Pricing, Provider, Coupon
+                       Product, Pricing, Provider, Coupon
   routes.php          All route definitions
 storage/logs/          OTP log (dev-mode "SMS" delivery), app error log
 ```
@@ -270,9 +270,6 @@ All endpoints are prefixed `/api/v1`. Authenticated endpoints require
 | POST | `/admin/customers/{id}/suspend` | admin |
 | POST | `/admin/customers/{id}/reactivate` | admin |
 | GET | `/admin/transactions?status=` | admin |
-| GET | `/admin/withdrawals/pending` | admin |
-| POST | `/admin/withdrawals/{id}/approve` | admin |
-| POST | `/admin/withdrawals/{id}/reject` | admin (refunds the wallet) |
 | GET | `/admin/products` | admin |
 | POST | `/admin/products/{id}/toggle-status` | admin |
 | GET | `/admin/pricing` | admin |

@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
     reference VARCHAR(40) NOT NULL,
-    category ENUM('airtime','data','electricity','cable','water','exam-pin','wallet-funding','withdrawal','betting') NOT NULL,
+    category ENUM('airtime','data','electricity','cable','water','exam-pin','wallet-funding','betting') NOT NULL,
     title VARCHAR(150) NOT NULL,
     subtitle VARCHAR(150) DEFAULT NULL,
     amount DECIMAL(14,2) NOT NULL,
@@ -79,19 +79,6 @@ CREATE TABLE IF NOT EXISTS transactions (
     CONSTRAINT fk_transactions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS withdrawals (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    amount DECIMAL(14,2) NOT NULL,
-    fee DECIMAL(14,2) NOT NULL DEFAULT 0,
-    bank_name VARCHAR(100) NOT NULL,
-    account_number VARCHAR(20) NOT NULL,
-    status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
-    requested_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    processed_at DATETIME DEFAULT NULL,
-    KEY idx_withdrawals_status (status),
-    CONSTRAINT fk_withdrawals_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ------------------------------------------------------------
 -- Catalog: networks, data plans, electricity DisCos, pricing

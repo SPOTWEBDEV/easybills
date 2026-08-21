@@ -24,14 +24,4 @@ export const walletApi = {
       body: { amount, callbackUrl },
     });
   },
-
-  async withdraw(payload: { amount: number; bankName: string; accountNumber: string }): Promise<{
-    transaction: Transaction;
-    wallet: Wallet;
-  }> {
-    return apiFetch("/api/v1/wallet/withdraw", {
-      method: "POST",
-      body: payload,
-    });
-  },
 };

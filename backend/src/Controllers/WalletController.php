@@ -7,10 +7,10 @@ use App\Core\PaystackException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Validator;
+use App\Models\ActivityLog;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
-use App\Models\Withdrawal;
 
 class WalletController
 {
@@ -75,17 +75,6 @@ class WalletController
         }
     }
 
-    public function show(Request $request): void
-    {
-        $userId = (int) $request->param('auth_user_id');
-        $wallet = Wallet::findByUserId($userId);
-        if (!$wallet) {
-            Response::error('Wallet not found.', 404);
-            return;
-        }
-        Response::success(Wallet::toPublicArray($wallet));
-    }
-
     /**
      * DEMO / MANUAL TOP-UP ONLY — not the production funding path.
      *
@@ -120,10 +109,6 @@ class WalletController
             default => 'Via Bank Transfer',
         };
 
-        // NOTE: In production, this endpoint should be called by your payment
-        // gateway's webhook (Paystack/Flutterwave) after a verified payment,
-        // not directly by the client — otherwise a user could fake a funding
-        // call. Wire that verification in before going live.
         $wallet = Wallet::credit($userId, $amount);
 
         $reference = $this->generateRef();
@@ -145,57 +130,14 @@ class WalletController
         ]);
     }
 
-    public function withdraw(Request $request): void
+    public function show(Request $request): void
     {
         $userId = (int) $request->param('auth_user_id');
-        $data = $request->all();
-
-        $validator = Validator::make()
-            ->required($data, ['amount', 'bankName', 'accountNumber'])
-            ->numeric($data, 'amount')
-            ->min($data, 'amount', 500)
-            ->regex($data, 'accountNumber', '/^\d{10}$/', 'Enter a valid 10-digit account number.');
-
-        if ($validator->fails()) {
-            Response::error($validator->firstError(), 422);
+        $wallet = Wallet::findByUserId($userId);
+        if (!$wallet) {
+            Response::error('Wallet not found.', 404);
             return;
         }
-
-        $amount = (float) $data['amount'];
-        $fee = 25.0;
-
-        try {
-            $wallet = Wallet::debit($userId, $amount + $fee);
-        } catch (\RuntimeException $e) {
-            Response::error('Insufficient wallet balance.', 422);
-            return;
-        }
-
-        Withdrawal::create([
-            'user_id' => $userId,
-            'amount' => $amount,
-            'fee' => $fee,
-            'bank_name' => $data['bankName'],
-            'account_number' => $data['accountNumber'],
-            'status' => 'pending', // requires admin approval — see AdminWithdrawalController
-        ]);
-
-        $reference = $this->generateRef();
-        $txnId = Transaction::create([
-            'user_id' => $userId,
-            'reference' => $reference,
-            'category' => 'withdrawal',
-            'title' => 'Withdrawal to ' . $data['bankName'],
-            'subtitle' => '**** ' . substr($data['accountNumber'], -4),
-            'amount' => $amount,
-            'fee' => $fee,
-            'status' => 'pending',
-            'balance_after' => $wallet['balance'],
-        ]);
-
-        Response::success([
-            'transaction' => Transaction::toPublicArray(Transaction::find($txnId)),
-            'wallet' => Wallet::toPublicArray($wallet),
-        ]);
+        Response::success(Wallet::toPublicArray($wallet));
     }
 }

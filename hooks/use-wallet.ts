@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { walletApi } from "@/lib/api/wallet";
 
 export function useWallet() {
@@ -12,16 +12,5 @@ export function useWallet() {
 export function useInitializeFunding() {
   return useMutation({
     mutationFn: walletApi.initializeFunding,
-  });
-}
-
-export function useWithdraw() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: walletApi.withdraw,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wallet"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-    },
   });
 }

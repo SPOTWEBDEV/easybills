@@ -8,7 +8,6 @@ export type TransactionCategory =
   | "water"
   | "exam-pin"
   | "wallet-funding"
-  | "withdrawal"
   | "betting";
 
 export interface Transaction {

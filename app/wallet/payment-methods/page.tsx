@@ -134,28 +134,7 @@ export default function PaymentMethodsPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-coral-50 dark:bg-coral-500/10 text-coral-600 dark:text-coral-500">
-                <Landmark className="h-4 w-4" />
-              </span>
-              <CardTitle>Linked withdrawal bank</CardTitle>
-            </div>
-            <CardDescription>Where your withdrawals are sent by default.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <div className="flex items-center justify-between rounded-2xl border border-ink-100 dark:border-ink-700 p-4">
-              <div>
-                <p className="text-sm font-semibold">GTBank</p>
-                <p className="text-xs text-ink-500 dark:text-paper-200/40">{maskAccount("0123456789")}</p>
-              </div>
-              <Button size="sm" variant="outline" onClick={() => toast("Bank change form would open here")}>
-                Change
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        
       </div>
     </AppShell>
   );
