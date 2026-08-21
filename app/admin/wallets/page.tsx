@@ -6,9 +6,11 @@ import { AdminPageHeading } from "@/components/admin/admin-page-heading";
 import { AdminStatCard } from "@/components/admin/admin-stat-card";
 import { AdminDataTable, Column } from "@/components/admin/admin-data-table";
 import { adminCustomersApi } from "@/lib/api/admin/customers";
-import { AdminCustomer } from "@/lib/api/admin/types";
+import {AdminCustomer} from "@/lib/mock-data/admin";
 import { formatNaira } from "@/lib/utils";
 import { Wallet, Users } from "lucide-react";
+
+
 
 const columns: Column<AdminCustomer>[] = [
   { key: "name", header: "Customer", render: (c) => c.name },
@@ -20,6 +22,7 @@ const columns: Column<AdminCustomer>[] = [
 export default function AdminWalletsPage() {
   const { data: customers, isLoading } = useQuery({ queryKey: ["admin-customers"], queryFn: adminCustomersApi.list });
   const customerList = customers ?? [];
+  console.log("customerList", customerList);
   const totalBalance = customerList.reduce((s, c) => s + c.walletBalance, 0);
 
   return (
