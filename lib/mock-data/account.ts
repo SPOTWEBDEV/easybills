@@ -15,9 +15,6 @@ export const mockWallet: Wallet = {
   balance: 84250.75,
   cashback: 1320.5,
   currency: "NGN",
-  accountNumber: "8127400931",
-  bankName: "EasyBills MFB",
-  accountName: "NGOZI ADEYEMI",
 };
 
 const now = Date.now();
