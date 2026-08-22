@@ -47,15 +47,12 @@ CREATE TABLE IF NOT EXISTS wallets (
     user_id INT UNSIGNED NOT NULL,
     balance DECIMAL(14,2) NOT NULL DEFAULT 0,
     cashback DECIMAL(14,2) NOT NULL DEFAULT 0,
-    account_number VARCHAR(20) NOT NULL,
-    bank_name VARCHAR(100) NOT NULL DEFAULT 'EasyBills Microfinance Bank',
-    account_name VARCHAR(150) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_wallets_user (user_id),
-    UNIQUE KEY uq_wallets_account_number (account_number),
     CONSTRAINT fk_wallets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 CREATE TABLE IF NOT EXISTS transactions (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

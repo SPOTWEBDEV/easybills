@@ -40,9 +40,6 @@ export interface Wallet {
   balance: number;
   cashback: number;
   currency: "NGN";
-  accountNumber: string;
-  bankName: string;
-  accountName: string;
 }
 
 export interface NetworkProvider {

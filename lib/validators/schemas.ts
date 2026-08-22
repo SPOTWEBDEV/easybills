@@ -49,7 +49,6 @@ export type ElectricityInput = z.infer<typeof electricitySchema>;
 
 export const fundWalletSchema = z.object({
   amount: z.coerce.number().min(100, "Minimum funding amount is ₦100."),
-  method: z.enum(["bank_transfer", "card", "virtual_account"]),
 });
 export type FundWalletInput = z.infer<typeof fundWalletSchema>;
 

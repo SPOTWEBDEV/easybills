@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ArrowUpRight, Copy, History, FileSpreadsheet, CreditCard } from "lucide-react";
-import { toast } from "sonner";
+import { Plus, History, FileSpreadsheet } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/shared/page-header";
 import { NotchCard } from "@/components/shared/notch-card";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransactionListItem } from "@/components/dashboard/transaction-list-item";
 import { useWallet } from "@/hooks/use-wallet";
@@ -17,14 +15,7 @@ export default function WalletPage() {
   const { data: wallet, isLoading } = useWallet();
   const { data: transactions } = useTransactions();
 
-  
   const walletTxns = transactions?.filter((t) => t.category === "wallet-funding");
-
-  const copyAccount = () => {
-    if (!wallet) return;
-    navigator.clipboard.writeText(wallet.accountNumber);
-    toast.success("Account number copied");
-  };
 
   return (
     <AppShell>
@@ -39,47 +30,15 @@ export default function WalletPage() {
               <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Available balance</p>
               <p className="mt-2 font-display text-3xl font-bold">{formatNaira(wallet.balance)}</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 px-4 pb-5 pt-3">
+            <div className="px-4 pb-5 pt-3">
               <Link
                 href="/wallet/fund"
                 className="flex items-center justify-center gap-2 rounded-xl bg-white/15 px-3 py-2.5 text-sm font-semibold"
               >
-                <Plus className="h-4 w-4" /> Fund
-              </Link>
-              <Link
-                href="/wallet/withdraw"
-                className="flex items-center justify-center gap-2 rounded-xl bg-white/15 px-3 py-2.5 text-sm font-semibold"
-              >
-                <ArrowUpRight className="h-4 w-4" /> Withdraw
+                <Plus className="h-4 w-4" /> Fund Wallet
               </Link>
             </div>
           </NotchCard>
-        )}
-
-        {wallet && (
-          <Card className="p-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-500 dark:text-paper-200/40">
-              Your dedicated virtual account
-            </p>
-            <div className="mt-3 flex items-center justify-between">
-              <div>
-                <p className="font-display text-lg font-bold tabular-nums">{wallet.accountNumber}</p>
-                <p className="text-sm text-ink-600 dark:text-paper-200/60">
-                  {wallet.bankName} &middot; {wallet.accountName}
-                </p>
-              </div>
-              <button
-                onClick={copyAccount}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-ink-100 dark:bg-ink-800"
-                aria-label="Copy account number"
-              >
-                <Copy className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="mt-3 text-xs text-ink-500 dark:text-paper-200/40">
-              Transfer any amount here and your wallet updates instantly.
-            </p>
-          </Card>
         )}
 
         <Link
@@ -92,19 +51,6 @@ export default function WalletPage() {
           <div className="flex-1">
             <p className="text-sm font-semibold">Statement of account</p>
             <p className="text-xs text-ink-600 dark:text-paper-200/50">Download your activity as CSV</p>
-          </div>
-        </Link>
-
-        <Link
-          href="/wallet/payment-methods"
-          className="flex items-center gap-3.5 rounded-2xl border border-ink-200/60 dark:border-ink-700/60 bg-white dark:bg-ink-850 p-4 shadow-soft transition-colors hover:bg-ink-50 dark:hover:bg-ink-800/60"
-        >
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-500">
-            <CreditCard className="h-4 w-4" />
-          </span>
-          <div className="flex-1">
-            <p className="text-sm font-semibold">Payment methods</p>
-            <p className="text-xs text-ink-600 dark:text-paper-200/50">Manage cards and bank details</p>
           </div>
         </Link>
 

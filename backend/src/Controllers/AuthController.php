@@ -46,7 +46,7 @@ class AuthController
         ]);
 
         Wallet::createForUser($userId);
-        Wallet::setAccountName($userId, $data['fullName']);
+        
 
         Otp::generate($userId, 'register');
 

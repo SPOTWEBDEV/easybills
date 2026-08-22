@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ShieldCheck, Lock, KeyRound, Bell, Palette, Globe, HeadphonesIcon,
-  LogOut, ChevronRight, BadgeCheck, FileSpreadsheet, Gift, CreditCard,
+  LogOut, ChevronRight, BadgeCheck, FileSpreadsheet, Gift
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
@@ -20,8 +20,7 @@ const menuGroups = [
     title: "Account",
     items: [
       { label: "Statement of account", icon: FileSpreadsheet, href: "/statement" },
-      { label: "Referrals & earnings", icon: Gift, href: "/referrals" },
-      { label: "Payment methods", icon: CreditCard, href: "/wallet/payment-methods" },
+      { label: "Referrals & earnings", icon: Gift, href: "/referrals" }
     ],
   },
   {
