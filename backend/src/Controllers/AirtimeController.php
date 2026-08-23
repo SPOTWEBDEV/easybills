@@ -13,6 +13,7 @@ use App\Models\Transaction;
 use App\Models\Wallet;
 use RuntimeException;
 use Throwable;
+use App\Models\ActivityLog;
 
 class AirtimeController
 {
@@ -102,8 +103,10 @@ class AirtimeController
                 'provider_payload' => $providerResponse,
             ]);
 
+            ActivityLog::record($userId, "Purchased {$provider['name']} airtime", ActivityLog::deviceFromUserAgent($_SERVER['HTTP_USER_AGENT'] ?? null));
+
             Response::success(['transaction' => Transaction::toPublicArray(Transaction::find($txnId))]);
-        } catch (EpinsException|Throwable $e) {
+        } catch (EpinsException | Throwable $e) {
             // Network/transport failure talking to ePINs — refund and record.
             Wallet::credit($userId, $sellPrice);
             $failTxnId = Transaction::create([

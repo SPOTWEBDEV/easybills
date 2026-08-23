@@ -5,17 +5,6 @@ namespace App\Core;
 /**
  * Wraps https://www.epins.com.ng/developers/ — our upstream wholesale
  * provider for airtime, data, electricity, TV, exams, and betting.
- *
- * All EasyBills product/pricing logic (margin, wallet debit, transaction
- * records) lives OUTSIDE this class, in the controllers. This class only
- * knows how to talk to ePINs and normalize error handling.
- *
- * Response codes (from ePINs docs):
- *   101 success · 102 low balance · 103 invalid API key · 104 duplicate ref
- *   105 failed · 107 invalid amount · 108 below minimum · 118 missing service id
- *   119 lookup/validation success (meter, smartcard, betting account)
- *   207 pin unavailable · 303 invalid service id · 304 unauthorized
- *   400 invalid request method · 1007 blocked · 1009 account blocked
  */
 class EpinsClient
 {
@@ -39,6 +28,14 @@ class EpinsClient
         'airtel' => '04',
     ];
 
+    /** Reverse of the above — used when parsing the variations response. */
+    public const DATA_NETWORK_ID_TO_PROVIDER = [
+        '01' => 'mtn',
+        '02' => 'glo',
+        '03' => '9mobile',
+        '04' => 'airtel',
+    ];
+
     public function __construct(?string $baseUrl = null, ?string $apiKey = null, ?int $timeout = null)
     {
         $mode = Env::get('EPINS_MODE', 'sandbox');
@@ -52,17 +49,18 @@ class EpinsClient
     }
 
     /**
-     * @throws EpinsException on network failure or non-2xx transport error.
-     * Business-logic failures (e.g. code 102 low balance) are returned as a
-     * normal array so the caller can inspect `code`/`description`.
+     * @param string|null $absoluteUrl When set, calls this exact URL instead
+     *        of $this->baseUrl + $path — used for endpoints like the
+     *        variations lookup that ePINs serves from a fixed production
+     *        host regardless of EPINS_MODE (there's no sandbox mirror of it).
      */
-    private function request(string $method, string $path, array $params = []): array
+    private function request(string $method, string $path, array $params = [], ?string $absoluteUrl = null): array
     {
         if ($this->apiKey === '') {
             throw new EpinsException('EPINS_API_KEY is not configured.');
         }
 
-        $url = $this->baseUrl . $path;
+        $url = $absoluteUrl ?? ($this->baseUrl . $path);
         $ch = curl_init();
 
         $headers = [
@@ -134,10 +132,20 @@ class EpinsClient
         ]);
     }
 
+    /**
+     * Fetches the live variation/plan list for a given service (e.g. "data").
+     * This is served from a FIXED production URL —
+     * https://api.epins.com.ng/v2/autho/variations/ — regardless of
+     * EPINS_MODE, since ePINs doesn't provide a sandbox mirror of it.
+     */
     public function getVariations(string $service): array
     {
-        // Documented as a flat endpoint outside the {{baseurl}} product paths.
-        return $this->request('GET', '/v2/autho/variations/', ['service' => $service]);
+        return $this->request(
+            'GET',
+            '',
+            ['service' => $service],
+            'https://api.epins.com.ng/v2/autho/variations/'
+        );
     }
 
     public function validateMeter(string $serviceId, string $meterNumber, string $meterType): array
@@ -229,6 +237,12 @@ class EpinsClient
         return in_array($code, [101, 119], true);
     }
 
+    /** The variations endpoint uses code 302 for a successful listing. */
+    public static function isVariationsSuccess(array $response): bool
+    {
+        return (int) ($response['code'] ?? 0) === 302 && is_array($response['description'] ?? null);
+    }
+
     public static function errorMessage(array $response): string
     {
         $code = (int) ($response['code'] ?? 0);
@@ -247,7 +261,6 @@ class EpinsClient
             1007 => 'This transaction was blocked by the provider.',
             1009 => 'The provider account is locked. Please contact support.',
         ];
-        $code = (int) ($response['code'] ?? 0);
         return $map[$code]
             ?? ($response['description']['response_description'] ?? null)
             ?? 'The provider could not process this request.';

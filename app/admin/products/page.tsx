@@ -10,11 +10,30 @@ import { Switch } from "@/components/ui/switch";
 import { adminProductsApi, AdminProductRow } from "@/lib/api/admin/products";
 import { formatNaira } from "@/lib/utils";
 import { Package, PackageCheck, PackageX } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
 
 export default function AdminProductsPage() {
   const queryClient = useQueryClient();
   const { data: products, isLoading } = useQuery({ queryKey: ["admin-products"], queryFn: adminProductsApi.list });
   const list = products ?? [];
+
+
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await adminProductsApi.syncDataPlans();
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      toast.success(`Synced ${res.synced} data plans from ePINs`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not sync plans.");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const toggleStatus = async (id: string) => {
     try {
@@ -45,7 +64,11 @@ export default function AdminProductsPage() {
 
   return (
     <AdminShell>
-      <AdminPageHeading title="Products" subtitle="Every bill / service product sold on EasyBills" />
+      <AdminPageHeading
+        title="Products"
+        subtitle="Every bill / service product sold on EasyBills"
+        action={<Button onClick={handleSync} loading={syncing}><RefreshCw className="h-4 w-4" /> Sync from ePINs</Button>}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <AdminStatCard label="Total products" value={list.length.toString()} icon={Package} />

@@ -9,6 +9,9 @@ use App\Core\Validator;
 use App\Models\Otp;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Models\Referral;
+use App\Models\Setting;
+use App\Models\ActivityLog;
 
 class AuthController
 {
@@ -31,9 +34,22 @@ class AuthController
             Response::error('An account with this email already exists.', 409);
             return;
         }
-        if (User::findByPhone($data['phone'])) {
+                if (User::findByPhone($data['phone'])) {
             Response::error('An account with this phone number already exists.', 409);
             return;
+        }
+
+        // Optional referral tracking: if a valid referral code was passed
+        // (from ?ref= on the register page), link this new user to their
+        // referrer. The reward itself is only paid out once this user
+        // completes their first successful purchase — see
+        // Referral::tryRewardOnFirstPurchase() in the purchase controllers.
+        $referredBy = null;
+        if (!empty($data['referralCode'])) {
+            $referrer = User::findByReferralCode($data['referralCode']);
+            if ($referrer) {
+                $referredBy = (int) $referrer['id'];
+            }
         }
 
         $userId = User::create([
@@ -43,7 +59,13 @@ class AuthController
             'password_hash' => password_hash($data['password'], PASSWORD_BCRYPT),
             'avatar_initials' => User::initials($data['fullName']),
             'status' => 'pending_verification',
+            'referred_by' => $referredBy,
         ]);
+
+        if ($referredBy) {
+            $referrerReward = (float) (Setting::get('referral_referrer_reward', '500'));
+            Referral::create($referredBy, $userId, $referrerReward);
+        }
 
         Wallet::createForUser($userId);
         
@@ -139,6 +161,12 @@ class AuthController
         }
 
         $token = Auth::issueUserToken((int) $user['id']);
+
+        ActivityLog::record(
+            (int) $user['id'],
+            'Logged in',
+            ActivityLog::deviceFromUserAgent($_SERVER['HTTP_USER_AGENT'] ?? null)
+        );
 
         Response::success([
             'user' => User::toPublicArray($user),

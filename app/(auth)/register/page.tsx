@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { User as UserIcon, Mail, Phone, Lock } from "lucide-react";
+import { User as UserIcon, Mail, Phone, Lock, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { AuthSplitShell } from "@/components/shared/auth-split-shell";
 import { Input } from "@/components/ui/input";
@@ -13,8 +14,11 @@ import { Button } from "@/components/ui/button";
 import { registerSchema, RegisterInput } from "@/lib/validators/schemas";
 import { authApi } from "@/lib/api/auth";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get("ref") ?? undefined;
+
   const {
     register,
     handleSubmit,
@@ -23,13 +27,14 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterInput) => {
     try {
-      const res = await authApi.register(data);
+      const res = await authApi.register({ ...data, referralCode });
       toast.success("Account created — verify your phone to continue");
       router.push(`/verify-otp?phone=${encodeURIComponent(res.phone)}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Registration failed.");
     }
   };
+
 
   return (
     <AuthSplitShell
@@ -44,6 +49,15 @@ export default function RegisterPage() {
         </p>
       }
     >
+      {referralCode && (
+        <div className="mb-5 flex items-center gap-2.5 rounded-2xl border border-brand-200 dark:border-brand-500/30 bg-brand-50 dark:bg-brand-500/10 px-4 py-3 text-sm text-brand-900 dark:text-brand-200">
+          <Gift className="h-4 w-4 shrink-0" />
+          <p>
+            Referral code <strong>{referralCode}</strong> applied — you and your friend both earn a reward on your first purchase.
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="fullName">Full name</Label>
@@ -123,5 +137,13 @@ export default function RegisterPage() {
         </Button>
       </form>
     </AuthSplitShell>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
   );
 }

@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Models\ActivityLog;
 
 class PaystackWebhookController
 {
@@ -63,7 +64,8 @@ class PaystackWebhookController
             return;
         }
 
-        $wallet = Wallet::credit((int) $transaction['user_id'], (float) $transaction['amount']);
+                $wallet = Wallet::credit((int) $transaction['user_id'], (float) $transaction['amount']);
         Transaction::markSuccess((int) $transaction['id'], $wallet['balance'], $reference);
+        ActivityLog::record((int) $transaction['user_id'], 'Funded wallet — ₦' . number_format((float) $transaction['amount']), 'Paystack');
     }
 }

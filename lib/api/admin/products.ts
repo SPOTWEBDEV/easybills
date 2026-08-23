@@ -18,4 +18,8 @@ export const adminProductsApi = {
   async toggleStatus(id: string): Promise<{ status: string }> {
     return apiFetch(`/api/v1/admin/products/${id}/toggle-status`, { method: "POST", auth: "admin" });
   },
+  /** Pulls the live plan list from ePINs and refreshes data_plans. */
+  async syncDataPlans(): Promise<{ synced: number }> {
+    return apiFetch("/api/v1/admin/products/sync-data-plans", { method: "POST", auth: "admin" });
+  },
 };

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ export default function DataPage() {
   const purchase = usePurchaseData();
   const [confirming, setConfirming] = useState(false);
   const [receipt, setReceipt] = useState<Transaction | null>(null);
+  const [activeCategory, setActiveCategory] = useState<"daily" | "weekly" | "monthly" | "other">("daily");
 
   const {
     register,
@@ -97,6 +99,7 @@ export default function DataPage() {
                     onClick={() => {
                       field.onChange(p.id);
                       setValue("planId", "");
+                      setActiveCategory("daily"); // will auto-fall-back to the first non-empty tab above
                     }}
                     className={cn(
                       "flex flex-col items-center gap-1.5 rounded-2xl border py-3.5 transition-colors",

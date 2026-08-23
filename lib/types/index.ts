@@ -55,6 +55,7 @@ export interface DataPlan {
   label: string;
   size: string;
   validity: string;
+  category: "daily" | "weekly" | "monthly" | "other";
   price: number;
   costPrice: number;
 }

@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+
 use App\Core\Database;
 use PDO;
 
+
 class User
 {
-    public static function create(array $data): int
+        public static function create(array $data): int
     {
         $db = Database::connection();
         $stmt = $db->prepare(
-            'INSERT INTO users (full_name, email, phone, password_hash, avatar_initials, kyc_status, tier, status, created_at)
-             VALUES (:full_name, :email, :phone, :password_hash, :avatar_initials, :kyc_status, :tier, :status, NOW())'
+            'INSERT INTO users (full_name, email, phone, password_hash, avatar_initials, kyc_status, tier, status, referral_code, referred_by, created_at)
+             VALUES (:full_name, :email, :phone, :password_hash, :avatar_initials, :kyc_status, :tier, :status, :referral_code, :referred_by, NOW())'
         );
         $stmt->execute([
             'full_name' => $data['full_name'],
@@ -23,8 +25,29 @@ class User
             'kyc_status' => $data['kyc_status'] ?? 'unverified',
             'tier' => $data['tier'] ?? 'Tier 1',
             'status' => $data['status'] ?? 'pending_verification',
+            'referral_code' => $data['referral_code'] ?? null,
+            'referred_by' => $data['referred_by'] ?? null,
         ]);
-        return (int) $db->lastInsertId();
+        $id = (int) $db->lastInsertId();
+
+        // referral_code depends on the new user's own id, so it's set in a
+        // second update once we know it.
+        if (empty($data['referral_code'])) {
+            $code = Referral::generateCode($data['full_name'], $id);
+            $update = $db->prepare('UPDATE users SET referral_code = :code WHERE id = :id');
+            $update->execute(['code' => $code, 'id' => $id]);
+        }
+
+        return $id;
+    }
+
+    public static function findByReferralCode(string $code): ?array
+    {
+        $db = Database::connection();
+        $stmt = $db->prepare('SELECT * FROM users WHERE referral_code = :code LIMIT 1');
+        $stmt->execute(['code' => strtoupper($code)]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
     }
 
     public static function findByEmail(string $email): ?array
@@ -92,7 +115,7 @@ class User
         return implode('', $initials) ?: 'U';
     }
 
-    public static function toPublicArray(array $row): array
+        public static function toPublicArray(array $row): array
     {
         return [
             'id' => (string) $row['id'],
@@ -102,6 +125,7 @@ class User
             'avatarInitials' => $row['avatar_initials'],
             'kycStatus' => $row['kyc_status'],
             'tier' => $row['tier'],
+            'referralCode' => $row['referral_code'] ?? null,
             'createdAt' => gmdate('c', strtotime($row['created_at'])),
         ];
     }

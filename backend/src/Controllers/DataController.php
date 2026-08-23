@@ -7,8 +7,10 @@ use App\Core\EpinsException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Validator;
+use App\Models\ActivityLog;
 use App\Models\DataPlan;
 use App\Models\NetworkProvider;
+use App\Models\Referral;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use RuntimeException;
@@ -54,8 +56,6 @@ class DataController
             return;
         }
 
-        // Data plan sell prices are configured per-plan already (see admin
-        // Products/Pricing), so no extra margin math is applied here.
         $sellPrice = (float) $plan['price'];
 
         try {
@@ -109,6 +109,9 @@ class DataController
                 'provider_ref' => $providerResponse['description']['ref'] ?? null,
                 'provider_payload' => $providerResponse,
             ]);
+
+            Referral::tryRewardOnFirstPurchase($userId);
+            ActivityLog::record($userId, "Purchased {$title}", ActivityLog::deviceFromUserAgent($_SERVER['HTTP_USER_AGENT'] ?? null));
 
             Response::success(['transaction' => Transaction::toPublicArray(Transaction::find($txnId))]);
         } catch (EpinsException|Throwable $e) {

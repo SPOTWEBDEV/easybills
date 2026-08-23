@@ -20,6 +20,11 @@ use App\Core\Request;
 use App\Core\Router;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AuthMiddleware;
+use App\Controllers\Admin\ReferralProgramController;
+use App\Controllers\ReferralController;
+use App\Controllers\Admin\ActivityLogController;
+use App\Controllers\Admin\BlogController as AdminBlogController;
+use App\Controllers\BlogController;
 
 /** @var Router $router */
 
@@ -85,8 +90,16 @@ $router->get('/api/v1/transactions', [$transactions, 'index'], [$authMw]);
 $router->get('/api/v1/transactions/summary', [$transactions, 'summary'], [$authMw]);
 $router->get('/api/v1/transactions/{id}', [$transactions, 'show'], [$authMw]);
 
+$referrals = new ReferralController();
+$router->get('/api/v1/referrals/summary', [$referrals, 'summary'], [$authMw]);
+$router->get('/api/v1/referrals/history', [$referrals, 'history'], [$authMw]);
+
 $statement = new StatementController();
 $router->get('/api/v1/statement.csv', [$statement, 'csv'], [$authMw]);
+
+$blog = new BlogController();
+$router->get('/api/v1/blog', [$blog, 'index']);
+$router->get('/api/v1/blog/{slug}', [$blog, 'show']);
 
 // ---------------------------------------------------------------------
 // Admin
@@ -94,6 +107,10 @@ $router->get('/api/v1/statement.csv', [$statement, 'csv'], [$authMw]);
 $adminAuth = new AdminAuthController();
 $router->post('/api/v1/admin/auth/login', [$adminAuth, 'login']);
 $router->get('/api/v1/admin/auth/me', [$adminAuth, 'me'], [$adminMw]);
+
+$referralProgram = new ReferralProgramController();
+$router->get('/api/v1/admin/referral-program', [$referralProgram, 'overview'], [$adminMw]);
+$router->put('/api/v1/admin/referral-program/settings', [$referralProgram, 'updateSettings'], [$adminMw]);
 
 $dashboard = new DashboardController();
 $router->get('/api/v1/admin/dashboard/stats', [$dashboard, 'stats'], [$adminMw]);
@@ -120,7 +137,18 @@ $router->put('/api/v1/admin/pricing/{id}', [$pricing, 'update'], [$adminMw]);
 $adminProviders = new AdminProviderController();
 $router->get('/api/v1/admin/providers', [$adminProviders, 'index'], [$adminMw]);
 $router->get('/api/v1/admin/providers/epins-status', [$adminProviders, 'epinsStatus'], [$adminMw]);
+$router->post('/api/v1/admin/products/sync-data-plans', [$products, 'syncDataPlans'], [$adminMw]);
 
 $coupons = new AdminCouponController();
 $router->get('/api/v1/admin/coupons', [$coupons, 'index'], [$adminMw]);
 $router->post('/api/v1/admin/coupons', [$coupons, 'store'], [$adminMw]);
+
+$adminBlog = new AdminBlogController();
+$router->get('/api/v1/admin/blog', [$adminBlog, 'index'], [$adminMw]);
+$router->post('/api/v1/admin/blog', [$adminBlog, 'store'], [$adminMw]);
+$router->put('/api/v1/admin/blog/{id}', [$adminBlog, 'update'], [$adminMw]);
+$router->post('/api/v1/admin/blog/{id}/toggle-status', [$adminBlog, 'toggleStatus'], [$adminMw]);
+$router->delete('/api/v1/admin/blog/{id}', [$adminBlog, 'destroy'], [$adminMw]);
+
+$activityLogs = new ActivityLogController();
+$router->get('/api/v1/admin/activity-logs', [$activityLogs, 'index'], [$adminMw]);
