@@ -33,6 +33,9 @@ export interface User {
   avatarInitials: string;
   kycStatus: "unverified" | "pending" | "verified";
   tier: "Tier 1" | "Tier 2" | "Tier 3";
+  referralCode: string | null;
+  hasTransactionPin: boolean;
+  twoFactorEnabled: boolean;
   createdAt: string;
 }
 

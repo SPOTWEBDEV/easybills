@@ -25,6 +25,11 @@ use App\Controllers\ReferralController;
 use App\Controllers\Admin\ActivityLogController;
 use App\Controllers\Admin\BlogController as AdminBlogController;
 use App\Controllers\BlogController;
+use App\Controllers\NotificationController;
+use App\Controllers\PushController;
+use App\Controllers\SecurityController;
+use App\Controllers\Admin\NavItemController;
+
 
 /** @var Router $router */
 
@@ -50,6 +55,7 @@ $router->post('/api/v1/auth/forgot-password', [$auth, 'forgotPassword']);
 $router->post('/api/v1/auth/reset-password', [$auth, 'resetPassword']);
 $router->post('/api/v1/auth/logout', [$auth, 'logout']);
 $router->get('/api/v1/auth/me', [$auth, 'me'], [$authMw]);
+$router->post('/api/v1/auth/verify-login-otp', [$auth, 'verifyLoginOtp']);
 
 // ---------------------------------------------------------------------
 // Wallet
@@ -100,6 +106,25 @@ $router->get('/api/v1/statement.csv', [$statement, 'csv'], [$authMw]);
 $blog = new BlogController();
 $router->get('/api/v1/blog', [$blog, 'index']);
 $router->get('/api/v1/blog/{slug}', [$blog, 'show']);
+
+
+$notifications = new NotificationController();
+$router->get('/api/v1/notifications', [$notifications, 'index'], [$authMw]);
+$router->get('/api/v1/notifications/unread-count', [$notifications, 'unreadCount'], [$authMw]);
+$router->post('/api/v1/notifications/{id}/read', [$notifications, 'markRead'], [$authMw]);
+$router->post('/api/v1/notifications/read-all', [$notifications, 'markAllRead'], [$authMw]);
+
+$push = new PushController();
+$router->get('/api/v1/push/vapid-public-key', [$push, 'vapidPublicKey']);
+$router->post('/api/v1/push/subscribe', [$push, 'subscribe'], [$authMw]);
+$router->post('/api/v1/push/unsubscribe', [$push, 'unsubscribe'], [$authMw]);
+
+
+$security = new SecurityController();
+$router->post('/api/v1/security/change-password', [$security, 'changePassword'], [$authMw]);
+$router->post('/api/v1/security/transaction-pin', [$security, 'setTransactionPin'], [$authMw]);
+$router->post('/api/v1/security/transaction-pin/verify', [$security, 'verifyTransactionPin'], [$authMw]);
+$router->post('/api/v1/security/two-factor', [$security, 'setTwoFactor'], [$authMw]);
 
 // ---------------------------------------------------------------------
 // Admin
@@ -152,3 +177,9 @@ $router->delete('/api/v1/admin/blog/{id}', [$adminBlog, 'destroy'], [$adminMw]);
 
 $activityLogs = new ActivityLogController();
 $router->get('/api/v1/admin/activity-logs', [$activityLogs, 'index'], [$adminMw]);
+$router->post('/api/v1/admin/products/sync-data-plans', [$products, 'syncDataPlans'], [$adminMw]);
+
+
+$navItems = new NavItemController();
+$router->get('/api/v1/admin/nav-items', [$navItems, 'index'], [$adminMw]);
+$router->put('/api/v1/admin/nav-items/{id}', [$navItems, 'update'], [$adminMw]);

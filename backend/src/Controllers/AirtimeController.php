@@ -14,6 +14,7 @@ use App\Models\Wallet;
 use RuntimeException;
 use Throwable;
 use App\Models\ActivityLog;
+use App\Models\User;
 
 class AirtimeController
 {
@@ -43,6 +44,17 @@ class AirtimeController
         if (!$provider) {
             Response::error('Select a valid network provider.', 422);
             return;
+        }
+
+        if (User::hasTransactionPin($userId)) {
+            if (empty($data['transactionPin'])) {
+                Response::error('Enter your transaction PIN to continue.', 422, ['requiresPin' => true]);
+                return;
+            }
+            if (!User::verifyTransactionPin($userId, (string) $data['transactionPin'])) {
+                Response::error('Incorrect transaction PIN.', 401, ['requiresPin' => true]);
+                return;
+            }
         }
 
         $costPrice = (float) $data['amount'];

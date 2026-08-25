@@ -19,6 +19,13 @@ export interface AuthResponse {
   token: string;
 }
 
+export interface LoginResult {
+  requiresTwoFactor?: boolean;
+  phone?: string;
+  user?: User;
+  token?: string;
+}
+
 /**
  * Calls the real easybills-backend PHP API (see NEXT_PUBLIC_API_URL in
  * .env.local). Successful login/register/verify calls store the JWT in
@@ -26,10 +33,22 @@ export interface AuthResponse {
  * token to every subsequent authenticated request.
  */
 export const authApi = {
-  async login(payload: LoginPayload): Promise<AuthResponse> {
-    const res = await apiFetch<AuthResponse>("/api/v1/auth/login", {
+    async login(payload: LoginPayload): Promise<LoginResult> {
+    const res = await apiFetch<LoginResult>("/api/v1/auth/login", {
       method: "POST",
       body: payload,
+      auth: "none",
+    });
+    if (res.token) {
+      tokenStore.setUserToken(res.token);
+    }
+    return res;
+  },
+
+  async verifyLoginOtp(phone: string, code: string): Promise<AuthResponse> {
+    const res = await apiFetch<AuthResponse>("/api/v1/auth/verify-login-otp", {
+      method: "POST",
+      body: { phone, code },
       auth: "none",
     });
     tokenStore.setUserToken(res.token);

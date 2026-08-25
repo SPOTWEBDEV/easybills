@@ -18,14 +18,17 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { TransactionPinDialog } from "@/components/shared/transaction-pin-dialog";
 import { fundWalletSchema, FundWalletInput } from "@/lib/validators/schemas";
 import { useInitializeFunding } from "@/hooks/use-wallet";
 import { formatNaira, cn } from "@/lib/utils";
+import { ApiError } from "@/lib/api-client";
 
 const presetAmounts = [1000, 2000, 5000, 10000];
 
 export default function FundWalletPage() {
   const [confirming, setConfirming] = useState(false);
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const initializeFunding = useInitializeFunding();
 
   const {
@@ -41,17 +44,20 @@ export default function FundWalletPage() {
 
   const values = watch();
 
-  const onConfirm = async () => {
+  const startFunding = async (transactionPin?: string) => {
     try {
-      const res = await initializeFunding.mutateAsync(values.amount);
-      // Redirect the browser to Paystack's hosted checkout, where the user
-      // picks card / bank transfer / USSD themselves. The wallet is
-      // credited by the backend once Paystack's webhook confirms payment —
-      // see /wallet/fund/callback for what happens after the user pays.
+      const res = await initializeFunding.mutateAsync({ amount: values.amount, transactionPin });
+      setPinDialogOpen(false);
       window.location.href = res.authorizationUrl;
     } catch (err) {
+      if (err instanceof ApiError && err.payload && typeof err.payload === "object" && "requiresPin" in err.payload) {
+        setConfirming(false);
+        setPinDialogOpen(true);
+        return;
+      }
       toast.error(err instanceof Error ? err.message : "Could not start payment. Please try again.");
       setConfirming(false);
+      setPinDialogOpen(false);
     }
   };
 
@@ -117,12 +123,19 @@ export default function FundWalletPage() {
             <Button variant="outline" className="flex-1" onClick={() => setConfirming(false)}>
               Cancel
             </Button>
-            <Button className="flex-1" loading={initializeFunding.isPending} onClick={onConfirm}>
+            <Button className="flex-1" loading={initializeFunding.isPending} onClick={() => startFunding()}>
               Proceed to payment
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      <TransactionPinDialog
+        open={pinDialogOpen}
+        onOpenChange={setPinDialogOpen}
+        onConfirm={(pin) => startFunding(pin)}
+        loading={initializeFunding.isPending}
+      />
     </AppShell>
   );
 }

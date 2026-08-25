@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { TransactionPinDialog } from "@/components/shared/transaction-pin-dialog";
+import { ApiError } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +35,7 @@ export default function AirtimePage() {
   const purchase = usePurchaseAirtime();
   const [confirming, setConfirming] = useState(false);
   const [receipt, setReceipt] = useState<Transaction | null>(null);
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
 
   const {
     register,
@@ -57,6 +60,8 @@ export default function AirtimePage() {
       setConfirming(false);
     }
   };
+
+  
 
   if (receipt) {
     return (

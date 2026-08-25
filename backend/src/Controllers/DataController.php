@@ -13,6 +13,7 @@ use App\Models\NetworkProvider;
 use App\Models\Referral;
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Models\User;
 use RuntimeException;
 use Throwable;
 
@@ -54,6 +55,17 @@ class DataController
         if (!$provider || !$plan || $plan['provider_id'] !== $provider['id']) {
             Response::error('Select a valid network and data plan.', 422);
             return;
+        }
+
+        if (User::hasTransactionPin($userId)) {
+            if (empty($data['transactionPin'])) {
+                Response::error('Enter your transaction PIN to continue.', 422, ['requiresPin' => true]);
+                return;
+            }
+            if (!User::verifyTransactionPin($userId, (string) $data['transactionPin'])) {
+                Response::error('Incorrect transaction PIN.', 401, ['requiresPin' => true]);
+                return;
+            }
         }
 
         $sellPrice = (float) $plan['price'];
@@ -114,7 +126,7 @@ class DataController
             ActivityLog::record($userId, "Purchased {$title}", ActivityLog::deviceFromUserAgent($_SERVER['HTTP_USER_AGENT'] ?? null));
 
             Response::success(['transaction' => Transaction::toPublicArray(Transaction::find($txnId))]);
-        } catch (EpinsException|Throwable $e) {
+        } catch (EpinsException | Throwable $e) {
             Wallet::credit($userId, $sellPrice);
             $failTxnId = Transaction::create([
                 'user_id' => $userId,

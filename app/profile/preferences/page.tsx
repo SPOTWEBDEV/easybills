@@ -11,13 +11,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Bell, Palette, Globe, Sun, Moon } from "lucide-react";
+import { PushNotificationToggle } from "@/components/shared/push-notification-toggle";
 
-const notificationTypes = [
-  { id: "transactions", label: "Transaction alerts", description: "Get notified for every purchase or payment" },
-  { id: "promotions", label: "Promotions & cashback", description: "Offers, discounts, and cashback updates" },
-  { id: "security", label: "Security alerts", description: "New device logins and password changes" },
-  { id: "product", label: "Product announcements", description: "New features and services on EasyBills" },
-];
 
 export default function PreferencesPage() {
   const { theme, setTheme } = useTheme();
@@ -50,17 +45,7 @@ export default function PreferencesPage() {
             </div>
             <CardDescription>Choose what you want to hear about.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3 pt-2">
-            {notificationTypes.map((n) => (
-              <div key={n.id} className="flex items-center justify-between rounded-2xl border border-ink-100 dark:border-ink-700 p-3.5">
-                <div className="pr-4">
-                  <p className="text-sm font-semibold">{n.label}</p>
-                  <p className="text-xs text-ink-500 dark:text-paper-200/40">{n.description}</p>
-                </div>
-                <Switch checked={prefs[n.id]} onCheckedChange={(checked) => togglePref(n.id, checked)} />
-              </div>
-            ))}
-          </CardContent>
+          <PushNotificationToggle />
         </Card>
 
         <Card>

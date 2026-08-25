@@ -34,7 +34,7 @@ class AuthController
             Response::error('An account with this email already exists.', 409);
             return;
         }
-                if (User::findByPhone($data['phone'])) {
+        if (User::findByPhone($data['phone'])) {
             Response::error('An account with this phone number already exists.', 409);
             return;
         }
@@ -68,7 +68,7 @@ class AuthController
         }
 
         Wallet::createForUser($userId);
-        
+
 
         Otp::generate($userId, 'register');
 
@@ -160,11 +160,57 @@ class AuthController
             return;
         }
 
+        // If this user has 2FA enabled, stop short of issuing a token —
+        // send a fresh OTP and require verify-login-otp to complete login.
+        if (User::isTwoFactorEnabled((int) $user['id'])) {
+            Otp::generate((int) $user['id'], 'login');
+            Response::success([
+                'requiresTwoFactor' => true,
+                'phone' => $user['phone'],
+            ]);
+            return;
+        }
+
         $token = Auth::issueUserToken((int) $user['id']);
 
         ActivityLog::record(
             (int) $user['id'],
             'Logged in',
+            ActivityLog::deviceFromUserAgent($_SERVER['HTTP_USER_AGENT'] ?? null)
+        );
+
+        Response::success([
+            'user' => User::toPublicArray($user),
+            'token' => $token,
+        ]);
+    }
+
+    public function verifyLoginOtp(Request $request): void
+    {
+        $data = $request->all();
+        $validator = Validator::make()->required($data, ['phone', 'code']);
+        if ($validator->fails()) {
+            Response::error($validator->firstError(), 422);
+            return;
+        }
+
+        $user = User::findByPhone($data['phone']);
+        if (!$user) {
+            Response::error('We could not find an account for this phone number.', 404);
+            return;
+        }
+
+        $ok = Otp::verify((int) $user['id'], 'login', (string) $data['code']);
+        if (!$ok) {
+            Response::error('Incorrect or expired code. Please try again.', 422);
+            return;
+        }
+
+        $token = Auth::issueUserToken((int) $user['id']);
+
+        ActivityLog::record(
+            (int) $user['id'],
+            'Logged in (2FA)',
             ActivityLog::deviceFromUserAgent($_SERVER['HTTP_USER_AGENT'] ?? null)
         );
 

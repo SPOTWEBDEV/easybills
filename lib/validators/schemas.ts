@@ -29,6 +29,7 @@ export const airtimeSchema = z.object({
   providerId: z.string().min(1, "Select a network."),
   phone: z.string().regex(/^0\d{10}$/, "Enter a valid 11-digit phone number."),
   amount: z.coerce.number().min(50, "Minimum amount is ₦50.").max(100000, "Maximum amount is ₦100,000."),
+  transactionPin: z.string().optional(),
 });
 export type AirtimeInput = z.infer<typeof airtimeSchema>;
 

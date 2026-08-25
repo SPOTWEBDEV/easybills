@@ -11,6 +11,7 @@ use App\Models\ElectricityProvider;
 use App\Models\PricingRule;
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Models\User;
 use RuntimeException;
 use Throwable;
 
@@ -74,10 +75,21 @@ class ElectricityController
             return;
         }
 
-        $provider = ElectricityProvider::find($data['providerId']);
+                $provider = ElectricityProvider::find($data['providerId']);
         if (!$provider) {
             Response::error('Select a valid distribution company.', 422);
             return;
+        }
+
+        if (User::hasTransactionPin($userId)) {
+            if (empty($data['transactionPin'])) {
+                Response::error('Enter your transaction PIN to continue.', 422, ['requiresPin' => true]);
+                return;
+            }
+            if (!User::verifyTransactionPin($userId, (string) $data['transactionPin'])) {
+                Response::error('Incorrect transaction PIN.', 401, ['requiresPin' => true]);
+                return;
+            }
         }
 
         $costPrice = (float) $data['amount'];

@@ -9,7 +9,7 @@ use PDO;
 
 class User
 {
-        public static function create(array $data): int
+    public static function create(array $data): int
     {
         $db = Database::connection();
         $stmt = $db->prepare(
@@ -111,11 +111,11 @@ class User
     public static function initials(string $fullName): string
     {
         $parts = preg_split('/\s+/', trim($fullName));
-        $initials = array_map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice($parts, 0, 2));
+        $initials = array_map(fn($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice($parts, 0, 2));
         return implode('', $initials) ?: 'U';
     }
 
-        public static function toPublicArray(array $row): array
+    public static function toPublicArray(array $row): array
     {
         return [
             'id' => (string) $row['id'],
@@ -126,7 +126,52 @@ class User
             'kycStatus' => $row['kyc_status'],
             'tier' => $row['tier'],
             'referralCode' => $row['referral_code'] ?? null,
+            'hasTransactionPin' => !empty($row['transaction_pin_hash']),
+            'twoFactorEnabled' => (bool) ($row['two_factor_enabled'] ?? false),
             'createdAt' => gmdate('c', strtotime($row['created_at'])),
         ];
+    }
+
+    public static function verifyPassword(int $id, string $password): bool
+    {
+        $user = self::find($id);
+        if (!$user) {
+            return false;
+        }
+        return password_verify($password, $user['password_hash']);
+    }
+
+    public static function setTransactionPin(int $id, string $pin): void
+    {
+        $db = Database::connection();
+        $stmt = $db->prepare('UPDATE users SET transaction_pin_hash = :hash WHERE id = :id');
+        $stmt->execute(['hash' => password_hash($pin, PASSWORD_BCRYPT), 'id' => $id]);
+    }
+
+    public static function verifyTransactionPin(int $id, string $pin): bool
+    {
+        $user = self::find($id);
+        if (!$user || empty($user['transaction_pin_hash'])) {
+            return false;
+        }
+        return password_verify($pin, $user['transaction_pin_hash']);
+    }
+
+    public static function hasTransactionPin(int $id): bool
+    {
+        $user = self::find($id);
+        return $user && !empty($user['transaction_pin_hash']);
+    }
+
+    public static function setTwoFactorEnabled(int $id, bool $enabled): void
+    {
+        $db = Database::connection();
+        $stmt = $db->prepare('UPDATE users SET two_factor_enabled = :enabled WHERE id = :id');
+        $stmt->execute(['enabled' => $enabled ? 1 : 0, 'id' => $id]);
+    }
+        public static function isTwoFactorEnabled(int $id): bool
+    {
+        $user = self::find($id);
+        return (bool) ($user['two_factor_enabled'] ?? false);
     }
 }
