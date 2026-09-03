@@ -1,6 +1,13 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 export function formatNaira(amount: number | undefined | null): string {
   const n = typeof amount === "number" ? amount : 0;
   return `₦${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
 
 export function formatCompactNaira(amount: number | undefined | null): string {

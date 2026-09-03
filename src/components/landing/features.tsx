@@ -1,61 +1,71 @@
-import { CheckCircle2, Gift, RefreshCw, ShieldCheck, Sparkles, Tag } from "lucide-react";
+"use client";
 
-const FEATURES = [
+import { motion } from "framer-motion";
+import { ShieldCheck, Gauge, Smartphone, PiggyBank, RefreshCcw, HeadphonesIcon } from "lucide-react";
+import { Section } from "@/components/shared/section";
+import { Card } from "@/components/ui/card";
+
+const features = [
   {
-    icon: Tag,
-    title: "Transparent pricing",
-    desc: "No subscriptions, no hidden charges. The fee is shown before you confirm, every time.",
-  },
-  {
-    icon: RefreshCw,
-    title: "Automatic refunds",
-    desc: "If a purchase fails on the provider's end, your wallet is refunded automatically — no support ticket needed.",
-  },
-  {
-    icon: Sparkles,
-    title: "Cashback on every buy",
-    desc: "Eligible purchases earn cashback straight into your wallet, redeemable on your next bill.",
+    icon: Gauge,
+    title: "Instant delivery",
+    body: "Most airtime, data and bill payments land in under 5 seconds — no waiting, no manual approval.",
   },
   {
     icon: ShieldCheck,
     title: "Bank-level security",
-    desc: "Your PIN and password never touch our logs. Funding goes through Paystack's secure checkout.",
+    body: "PIN and 2FA protection on every transaction, with encrypted wallets and verified providers.",
   },
   {
-    icon: Gift,
-    title: "Refer & earn",
-    desc: "Share your code — you and your friend both get rewarded the moment they complete their first purchase.",
+    icon: Smartphone,
+    title: "Installs like an app",
+    body: "Add EasyBills to your home screen — works offline, loads instantly, feels native.",
   },
   {
-    icon: CheckCircle2,
-    title: "Instant confirmation",
-    desc: "Every successful purchase comes with a receipt you can trust, ready to share or download.",
+    icon: PiggyBank,
+    title: "Best-in-market rates",
+    body: "Transparent pricing with cashback on every purchase. No hidden charges, ever.",
+  },
+  {
+    icon: RefreshCcw,
+    title: "Auto retry on failure",
+    body: "If a provider hiccups, we retry automatically and refund instantly if it still fails.",
+  },
+  {
+    icon: HeadphonesIcon,
+    title: "24/7 human support",
+    body: "Live chat and support tickets, answered by real people — not just a bot.",
   },
 ];
 
 export function Features() {
   return (
-    <section id="features" className="mx-auto max-w-6xl px-6 py-24">
-      <div className="mx-auto mb-14 max-w-xl text-center">
-        <h2 className="font-display text-3xl font-bold tracking-tight text-ink">
-          Built to be trusted, not just fast.
+    <Section className="py-16 md:py-24">
+      <div className="mx-auto max-w-xl text-center">
+        <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
+          Built for how Nigeria actually pays
         </h2>
-        <p className="mt-3 text-ink-muted">
-          The details that make EasyBills the last bills app you'll need to install.
-        </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map((f) => (
-          <div key={f.title} className="rounded-2xl border border-line bg-surface p-6">
-            <span className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/15 text-brand-500">
-              <f.icon className="h-5 w-5" />
-            </span>
-            <h3 className="font-display text-base font-semibold text-ink">{f.title}</h3>
-            <p className="mt-1.5 text-sm text-ink-faint">{f.desc}</p>
-          </div>
+      <div className="mt-10 grid gap-4 md:grid-cols-3">
+        {features.map((feature, i) => (
+          <motion.div
+            key={feature.title}
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: (i % 3) * 0.08, duration: 0.35 }}
+          >
+            <Card className="h-full p-6">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">
+                <feature.icon className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 font-display text-base font-semibold">{feature.title}</h3>
+              <p className="mt-2 text-sm text-ink-600 dark:text-paper-200/60">{feature.body}</p>
+            </Card>
+          </motion.div>
         ))}
       </div>
-    </section>
+    </Section>
   );
 }

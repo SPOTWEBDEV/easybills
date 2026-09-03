@@ -1,33 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import { cx } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus } from "lucide-react";
+import { Section } from "@/components/shared/section";
+import { cn } from "@/lib/utils";
 
-const FAQS = [
+const faqs = [
   {
-    q: "Is my money safe with EasyBills?",
-    a: "Yes. Wallet funding goes through Paystack's secure checkout, and your transaction PIN and password are never stored in plain text or logged. We never store your card details on our servers.",
+    q: "How fast are payments delivered?",
+    a: "Most airtime and data purchases complete in under 5 seconds. Electricity, cable and exam pins typically complete within 30 seconds, depending on the provider.",
   },
   {
-    q: "How fast is delivery on airtime, data, or electricity?",
-    a: "Most purchases complete in a few seconds. In rare cases where a provider is slow to respond, you'll see a \"pending\" status until it clears — this doesn't happen often.",
+    q: "Is my money safe in my EasyBills wallet?",
+    a: "Yes. Wallets are held with a licensed banking partner, protected by PIN and optional 2FA, and every transaction is logged with a receipt you can download or share.",
   },
   {
-    q: "What happens if a purchase fails?",
-    a: "If a purchase fails on the provider's side, your wallet is automatically refunded — you don't need to open a support ticket or wait for manual review.",
+    q: "What happens if a transaction fails?",
+    a: "We automatically retry failed transactions. If it still fails, the full amount is refunded to your wallet instantly — no support ticket required.",
   },
   {
-    q: "Do you charge extra fees?",
-    a: "Any fee is shown upfront before you confirm a purchase — there are no subscriptions and no hidden charges added afterward.",
+    q: "Can I install EasyBills like an app?",
+    a: "Yes — EasyBills is a full Progressive Web App. Add it to your home screen on Android or iPhone for a native app experience, including offline access.",
   },
   {
-    q: "How does the referral program work?",
-    a: "Share your referral code with a friend. Once they sign up and complete their first successful purchase, you both get rewarded straight into your wallets.",
-  },
-  {
-    q: "Can I become an agent and resell services?",
-    a: "Yes — apply from the app to become an EasyBills agent, sell to your community, and earn a tracked commission on every sale.",
+    q: "How do agent profit margins work?",
+    a: "Agents set their own selling price above our wholesale rate. The markup is credited to your wallet the moment a customer completes a purchase.",
   },
 ];
 
@@ -35,38 +33,47 @@ export function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-6 py-24">
-      <div className="mx-auto mb-12 text-center">
-        <h2 className="font-display text-3xl font-bold tracking-tight text-ink">
-          Frequently asked questions.
+    <Section id="faq" className="py-16 md:py-24">
+      <div className="mx-auto max-w-xl text-center">
+        <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
+          Frequently asked questions
         </h2>
       </div>
 
-      <div className="divide-y divide-line rounded-2xl border border-line bg-surface">
-        {FAQS.map((item, i) => {
-          const open = openIndex === i;
+      <div className="mx-auto mt-10 max-w-2xl divide-y divide-ink-200 dark:divide-ink-700 rounded-3xl border border-ink-200/60 dark:border-ink-700/60 bg-white dark:bg-ink-850 shadow-soft">
+        {faqs.map((faq, i) => {
+          const isOpen = openIndex === i;
           return (
-            <div key={item.q}>
+            <div key={faq.q} className="px-5 md:px-6">
               <button
-                onClick={() => setOpenIndex(open ? null : i)}
-                className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-                aria-expanded={open}
+                onClick={() => setOpenIndex(isOpen ? null : i)}
+                className="flex w-full items-center justify-between gap-4 py-5 text-left"
               >
-                <span className="font-display text-sm font-semibold text-ink">{item.q}</span>
-                <ChevronDown
-                  className={cx(
-                    "h-4 w-4 shrink-0 text-ink-faint transition-transform",
-                    open && "rotate-180 text-brand-500"
+                <span className="text-sm font-semibold md:text-base">{faq.q}</span>
+                <Plus
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-brand-600 dark:text-brand-400 transition-transform duration-300",
+                    isOpen && "rotate-45"
                   )}
                 />
               </button>
-              {open && (
-                <div className="px-6 pb-5 text-sm text-ink-muted">{item.a}</div>
-              )}
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    className="overflow-hidden"
+                  >
+                    <p className="pb-5 text-sm text-ink-600 dark:text-paper-200/60">{faq.a}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           );
         })}
       </div>
-    </section>
+    </Section>
   );
 }

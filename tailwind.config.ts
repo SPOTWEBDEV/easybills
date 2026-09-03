@@ -2,95 +2,95 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: "class",
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
   theme: {
+    container: {
+      center: true,
+      padding: "1rem",
+    },
     extend: {
       colors: {
-        // Literal scales — used directly (bg-paper-50, dark:bg-ink-950, etc.)
-        // exactly as the original landing page markup expects.
+        ink: {
+          950: "#0A0D13",
+          900: "#12151D",
+          850: "#181C27",
+          800: "#1F2430",
+          700: "#2A2F3D",
+          600: "#3A4053",
+        },
         paper: {
           50: "#F7F7F5",
-          100: "#FFFFFF",
-          200: "#F1F1EE",
-          300: "#E4E4DD",
-          400: "#D2D2C7",
-          500: "#B7B7AB",
-          600: "#93938A",
-          700: "#6E6E66",
-          800: "#4A4A44",
-          900: "#252521",
-          950: "#131311",
-        },
-        ink: {
-          DEFAULT: "rgb(var(--fg) / <alpha-value>)",
-          muted: "rgb(var(--fg-muted) / <alpha-value>)",
-          faint: "rgb(var(--fg-faint) / <alpha-value>)",
-          50: "#F0F1F6",
-          100: "#E1E3EC",
-          200: "#C3C7D6",
-          300: "#9E9EB1",
-          400: "#9EA4B5",
-          500: "#5A6170",
-          600: "#3F4451",
-          700: "#2A2F3D",
-          800: "#181C27",
-          900: "#12151D",
-          950: "#0A0D13",
-        },
-        // Semantic tokens — read from the CSS custom properties in
-        // globals.css, so they flip automatically with the `.dark` class.
-        base: {
-          DEFAULT: "rgb(var(--bg) / <alpha-value>)",
-        },
-        surface: {
-          DEFAULT: "rgb(var(--bg-elevated) / <alpha-value>)",
-          raised: "rgb(var(--bg-elevated) / <alpha-value>)",
-          hover: "rgb(var(--bg-hover) / <alpha-value>)",
-        },
-        line: {
-          DEFAULT: "rgb(var(--border) / <alpha-value>)",
-          soft: "rgb(var(--border) / <alpha-value>)",
+          100: "#EFEFEA",
+          200: "#E4E4DD",
         },
         brand: {
-          50: "#E7FBF6",
-          100: "#C8F4E9",
-          200: "#93E8D2",
-          300: "#5DD9BC",
-          400: "#2CC7A3",
+          50: "#E6FBF8",
+          100: "#C3F3EC",
+          200: "#91E6D6",
+          300: "#6FDFCF",
+          400: "#3BC7B0",
           500: "#0EA894",
-          600: "#0B8A7A",
-          700: "#096E62",
-          800: "#08574F",
-          900: "#074640",
-          950: "#042925",
+          600: "#0B8A79",
+          700: "#086D60",
+          900: "#04443B",
         },
-        good: "#1E9E5A",
-        warn: "#C08A0E",
-        bad: "#D6484F",
+        emerald: {
+          50: "#EAFBEF",
+          500: "#22A559",
+          600: "#1B8A48",
+        },
+        coral: {
+          50: "#FDECEC",
+          500: "#E5484D",
+          600: "#C93A3F",
+        },
       },
       fontFamily: {
-        display: ["var(--font-display)", "ui-sans-serif", "system-ui", "sans-serif"],
-        sans: ["var(--font-body)", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
-      },
-      boxShadow: {
-        card: "0 1px 0 0 rgba(255,255,255,0.03) inset, 0 10px 30px -16px rgba(10,13,19,0.35)",
-        glow: "0 0 0 1px rgba(14,168,148,0.15), 0 20px 60px -15px rgba(14,168,148,0.35)",
+        display: ["var(--font-display)", "sans-serif"],
+        body: ["var(--font-body)", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
       },
       borderRadius: {
-        xl2: "1.25rem",
+        "2xl": "1.25rem",
+        "3xl": "1.75rem",
+      },
+      boxShadow: {
+        soft: "0 2px 8px -2px rgba(18,21,29,0.08), 0 8px 24px -8px rgba(18,21,29,0.10)",
+        "soft-dark": "0 2px 8px -2px rgba(0,0,0,0.35), 0 12px 32px -8px rgba(0,0,0,0.45)",
+        glow: "0 0 0 1px rgba(14,168,148,0.18), 0 8px 30px -8px rgba(14,168,148,0.45)",
+      },
+      backgroundImage: {
+        "brand-mesh":
+          "radial-gradient(120% 120% at 10% 0%, rgba(14,168,148,0.55) 0%, rgba(14,168,148,0) 55%), radial-gradient(90% 90% at 100% 100%, rgba(59,199,176,0.30) 0%, rgba(59,199,176,0) 55%), linear-gradient(160deg, #12151D 0%, #0A0D13 70%)",
+        "accent-mesh":
+          "linear-gradient(135deg, #3BC7B0 0%, #0EA894 45%, #086D60 100%)",
       },
       keyframes: {
+        "pulse-ring": {
+          "0%": { transform: "scale(0.9)", opacity: "0.7" },
+          "80%": { transform: "scale(1.6)", opacity: "0" },
+          "100%": { transform: "scale(1.6)", opacity: "0" },
+        },
         shimmer: {
-          "0%": { backgroundPosition: "150% 0" },
-          "100%": { backgroundPosition: "-50% 0" },
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "count-up": {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
       animation: {
-        shimmer: "shimmer 2.2s linear infinite",
+        "pulse-ring": "pulse-ring 1.8s cubic-bezier(0.2,0.6,0.4,1) infinite",
+        shimmer: "shimmer 2.5s linear infinite",
+        "count-up": "count-up 0.4s ease-out",
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
 export default config;
