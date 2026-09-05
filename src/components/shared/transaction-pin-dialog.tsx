@@ -22,12 +22,12 @@ export function TransactionPinDialog({
 
   return (
     <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) setPin("");
-        onOpenChange(next);
-      }}
-    >
+  open={open}
+  onOpenChange={(next: boolean) => {
+    if (!next) setPin("");
+    onOpenChange(next);
+  }}
+>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Enter your transaction PIN</DialogTitle>
