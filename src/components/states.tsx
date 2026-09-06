@@ -12,7 +12,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-line bg-surface/50 px-6 py-16 text-center">
-      <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-hover text-ink-faint">
+      <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-surface-hover text-ink-faint">
         <Icon className="h-5 w-5" />
       </span>
       <p className="mb-1 font-display text-base font-semibold text-ink">{title}</p>
@@ -37,7 +37,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
       {onRetry && (
         <button
           onClick={onRetry}
-          className="rounded-full border border-line bg-surface px-4 py-1.5 text-xs font-medium text-ink hover:bg-surface-hover"
+          className="rounded-full border border-line bg-surface px-4 py-1.5 text-xs font-medium text-ink transition-colors hover:bg-surface-hover"
         >
           Try again
         </button>

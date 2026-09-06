@@ -108,7 +108,7 @@ export default function CustomersPage() {
                   <tr key={c.id} className="border-b border-line-soft last:border-0 hover:bg-surface-hover">
                     <td className="px-4 py-3">
                       <Link href={`/customers/${c.id}`} className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-semibold text-brand-400">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-semibold text-brand-600">
                           {c.avatarInitials}
                         </span>
                         <span>

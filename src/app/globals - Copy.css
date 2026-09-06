@@ -5,31 +5,23 @@
 :root {
   --bg: 247 247 245;
   --bg-elevated: 255 255 255;
-  --bg-hover: 240 240 236;
   --fg: 18 21 29;
   --fg-muted: 90 97 112;
-  --fg-faint: 140 145 156;
   --border: 228 228 221;
   --card-notch: 247 247 245;
 
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  /* --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
-
-  color-scheme: light;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace; */
 }
 
 .dark {
   --bg: 10 13 19;
   --bg-elevated: 24 28 39;
-  --bg-hover: 31 36 48;
   --fg: 240 241 246;
   --fg-muted: 158 164 181;
-  --fg-faint: 110 116 131;
   --border: 42 47 61;
   --card-notch: 10 13 19;
-
-  color-scheme: dark;
 }
 
 * {
@@ -38,7 +30,6 @@
 
 html {
   -webkit-tap-highlight-color: transparent;
-  scroll-behavior: smooth;
 }
 
 body {
@@ -110,51 +101,4 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-}
-
-/* --- Additions on top of the recovered stylesheet (non-destructive) --- */
-
-.text-balance {
-  text-wrap: balance;
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgb(var(--border));
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--fg-faint));
-}
-
-:focus-visible {
-  outline: 2px solid #0ea894;
-  outline-offset: 2px;
-}
-
-/* Guarantee typed text is always visible, regardless of what a given
-   input/textarea/select's own class list sets (or forgets to set) — this is
-   belt-and-suspenders on top of `color-scheme` above, which handles most
-   browsers on its own, but autofill and some mobile browsers need this too. */
-input,
-textarea,
-select {
-  color: rgb(var(--fg));
-  caret-color: rgb(var(--fg));
-}
-input::placeholder,
-textarea::placeholder {
-  color: rgb(var(--fg-faint));
-}
-input:-webkit-autofill,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
-  -webkit-text-fill-color: rgb(var(--fg));
-  transition: background-color 9999s ease-in-out 0s;
 }

@@ -69,7 +69,7 @@ export default function CustomerDetailPage() {
         <>
           <div className="mb-6 flex flex-col justify-between gap-4 rounded-2xl border border-line bg-surface p-6 shadow-card sm:flex-row sm:items-center">
             <div className="flex items-center gap-4">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500/15 text-lg font-semibold text-brand-400">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500/15 text-lg font-semibold text-brand-600">
                 {detail.user.avatarInitials}
               </span>
               <div>

@@ -58,28 +58,6 @@ export interface TopService {
   value: number;
 }
 
-export interface Product {
-  id: number;
-  name: string;
-  category: string;
-  provider: string;
-  price: number;
-  costPrice?: number;
-  status: "active" | "disabled";
-}
-
-export interface PricingRule {
-  id: number;
-  name: string;
-  marginType: "fixed" | "percentage";
-  marginValue: number;
-}
-
-export interface Provider {
-  id: string;
-  name: string;
-}
-
 export interface PaginatedMeta {
   page: number;
   perPage: number;
@@ -118,6 +96,76 @@ export interface AdminBroadcast {
   sentTo: number;
   status: "sent" | "pending" | "failed" | string;
   sentAt: string;
+}
+
+// ---- Gift cards ----
+
+export interface GiftCardBrand {
+  id: string;
+  name: string;
+  sellRatePercent: number;
+  buyEnabled: boolean;
+  sellEnabled: boolean;
+  status: "active" | "inactive";
+}
+
+export interface GiftCardStockItem {
+  denominationAmount: number;
+  price: number;
+  available: number;
+}
+
+export interface GiftCardSale {
+  id: number;
+  brandId: string;
+  brandName: string;
+  faceValueAmount: number;
+  payoutAmount: number;
+  note: string | null;
+  status: "pending" | "approved" | "rejected";
+  adminNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  customerName?: string;
+  customerEmail?: string;
+}
+
+export interface GiftCardSaleDetail extends GiftCardSale {
+  cardCode: string;
+  cardPin?: string | null;
+}
+
+// ---- Flights ----
+
+export interface AdminFlightBooking {
+  id: number;
+  bookingReference: string;
+  origin: string;
+  destination: string;
+  departureAt: string | null;
+  returnAt: string | null;
+  passengerCount: number;
+  amountPaid: number;
+  status: "confirmed" | "cancelled" | "failed";
+  refundAmount: number | null;
+  createdAt: string;
+  customerName?: string;
+  customerEmail?: string;
+}
+
+export interface FxRate {
+  currency: string;
+  rateToNgn: number;
+  updatedAt: string;
+}
+
+// Used only for the "flight" markup row here — the wider product/pricing
+// catalog this originally belonged to was removed from this build.
+export interface PricingRule {
+  id: number;
+  name: string;
+  marginType: "fixed" | "percentage";
+  marginValue: number;
 }
 
 export interface ApiError {

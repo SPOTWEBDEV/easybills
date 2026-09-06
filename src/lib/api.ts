@@ -1,12 +1,16 @@
 import type {
   AdminBroadcast,
+  AdminFlightBooking,
   AdminUser,
   Customer,
   CustomerDetail,
   DashboardStats,
-  Product,
+  FxRate,
+  GiftCardBrand,
+  GiftCardSale,
+  GiftCardSaleDetail,
+  GiftCardStockItem,
   PricingRule,
-  Provider,
   ReferralProgram,
   RevenueTrendPoint,
   TopService,
@@ -150,39 +154,6 @@ export function getAdminTransactions(status?: string) {
   return request<{ data: Transaction[] }>(`/admin/transactions${qs}`);
 }
 
-// ---- Products / pricing / providers ----
-
-export function getProducts() {
-  return request<{ data: Product[] }>("/admin/products");
-}
-
-export function toggleProductStatus(id: number | string) {
-  return request<{ success: boolean }>(`/admin/products/${id}/toggle-status`, { method: "POST" });
-}
-
-export function syncDataPlans() {
-  return request<{ success: boolean }>("/admin/products/sync-data-plans", { method: "POST" });
-}
-
-export function getPricing() {
-  return request<{ data: PricingRule[] }>("/admin/pricing");
-}
-
-export function updatePricing(id: number | string, body: { marginType: string; marginValue: number }) {
-  return request<{ success: boolean }>(`/admin/pricing/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(body),
-  });
-}
-
-export function getProviders() {
-  return request<{ data: Provider[] }>("/admin/providers");
-}
-
-export function getEpinsStatus() {
-  return request<{ connected: boolean; raw?: unknown; error?: string }>("/admin/providers/epins-status");
-}
-
 // ---- Referral program ----
 
 export function getReferralProgram() {
@@ -214,6 +185,116 @@ export function sendAdminBroadcast(body: {
 }) {
   return request<{ id: number; sentTo: number }>("/admin/notifications", {
     method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+// ---- Gift cards ----
+// "Buy" is instant (customer purchases pre-loaded stock); "sell" always
+// lands in a pending queue that a human must approve or reject — nothing is
+// ever auto-paid on the sell side.
+
+export function getGiftCardBrands() {
+  return request<{ data: GiftCardBrand[] }>("/admin/giftcards/brands");
+}
+
+export function createGiftCardBrand(body: {
+  id: string;
+  name: string;
+  sellRatePercent: number;
+  buyEnabled?: boolean;
+  sellEnabled?: boolean;
+}) {
+  return request<{ id: string }>("/admin/giftcards/brands", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateGiftCardBrand(
+  id: string,
+  body: { sellRatePercent: number; buyEnabled?: boolean; sellEnabled?: boolean; status?: "active" | "inactive" }
+) {
+  return request<{ success: boolean }>(`/admin/giftcards/brands/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export function getGiftCardStock(brandId: string) {
+  return request<{ data: GiftCardStockItem[] }>(
+    `/admin/giftcards/stock?brand_id=${encodeURIComponent(brandId)}`
+  );
+}
+
+export function addGiftCardStock(body: {
+  brandId: string;
+  denominationAmount: number;
+  price: number;
+  items: { code: string; pin?: string }[];
+}) {
+  return request<{ added: number }>("/admin/giftcards/stock", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function getGiftCardSales(status?: string) {
+  const qs = status && status !== "all" ? `?status=${status}` : "";
+  return request<{ data: GiftCardSale[] }>(`/admin/giftcards/sales${qs}`);
+}
+
+// The only endpoint that ever reveals the decrypted card code/PIN — every
+// call here is written to the backend's audit log.
+export function getGiftCardSaleDetail(id: number | string) {
+  return request<GiftCardSaleDetail>(`/admin/giftcards/sales/${id}`);
+}
+
+export function approveGiftCardSale(id: number | string) {
+  return request<{ success: boolean }>(`/admin/giftcards/sales/${id}/approve`, { method: "POST" });
+}
+
+export function rejectGiftCardSale(id: number | string, reason?: string) {
+  return request<{ success: boolean }>(`/admin/giftcards/sales/${id}/reject`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+// ---- Flights (Duffel) ----
+// This backend never charges in whatever currency Duffel quotes an offer in
+// — every price is converted to NGN using an admin-set FX rate before
+// anything is shown or charged. Keeping those rates current is what makes
+// flight pricing accurate; see the FX Rates panel.
+
+export function getAdminFlightBookings(status?: string) {
+  const qs = status && status !== "all" ? `?status=${status}` : "";
+  return request<{ data: AdminFlightBooking[] }>(`/admin/flights/bookings${qs}`);
+}
+
+export function getFxRates() {
+  return request<{ data: FxRate[] }>("/admin/fx-rates");
+}
+
+export function updateFxRate(currency: string, rateToNgn: number) {
+  return request<{ success: boolean }>(`/admin/fx-rates/${currency}`, {
+    method: "PUT",
+    body: JSON.stringify({ rateToNgn }),
+  });
+}
+
+// Flight markup shares the same /admin/pricing endpoints as every other
+// service category — scoped down here to just what the Flights page needs
+// (finding and editing the "flight" row), since the broader product catalog
+// this belonged to isn't part of this build.
+
+export function getPricing() {
+  return request<{ data: PricingRule[] }>("/admin/pricing");
+}
+
+export function updatePricing(id: number | string, body: { marginType: string; marginValue: number }) {
+  return request<{ success: boolean }>(`/admin/pricing/${id}`, {
+    method: "PUT",
     body: JSON.stringify(body),
   });
 }
