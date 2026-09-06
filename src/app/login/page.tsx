@@ -6,7 +6,7 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { ApiRequestError } from "@/lib/api";
-import { LogoFull } from "@/components/logo";
+import { Logo } from "@/components/logo";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -36,7 +36,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-base px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <LogoFull theme={theme} width={200} className="mb-2" />
+          <Logo  className="mb-2" />
           <h1 className="font-display text-2xl font-bold text-ink">Admin sign in</h1>
           <p className="mt-1 text-sm text-ink-faint">Manage EasyBills from the admin panel</p>
         </div>

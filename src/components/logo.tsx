@@ -1,64 +1,36 @@
-import Image from "next/image";
-import { cx } from "@/lib/utils";
+import { Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const TEXT_SIZE: Record<string, string> = {
-  sm: "text-base",
-  md: "text-lg",
-  lg: "text-2xl",
-};
-
-const ICON_SIZE: Record<string, number> = {
-  sm: 72,
-  md: 72,
-  lg: 92,
-};
-
-/**
- * Compact icon + live-styled wordmark, for navbars/sidebars/footers.
- * Uses the real brand mark (extracted from the supplied logo files) so it
- * stays crisp and theme-correct at any size, rather than baking colored text
- * into a raster image.
- */
-export function Logo({ size = "md", className }: { size?: "sm" | "md" | "lg"; className?: string }) {
-  const px = ICON_SIZE[size];
-  return (
-    <span className={cx("flex items-center gap-2", className)}>
-      <Image
-        src="/logo-dark-full.png"
-        alt="EasyBills"
-        width={px}
-        height={px}
-        className="shrink-0"
-        priority
-      />
-    </span>
-  );
-}
-
-/**
- * Full lockup (icon + wordmark + tagline) as originally designed, swapped
- * between the light-background and dark-background variants. Best used
- * somewhere with room to breathe — the login screen, a splash state, etc.
- */
-export function LogoFull({
-  theme,
-  width = 220,
+export function Logo({
   className,
+  mark = false,
+  inverted = false,
 }: {
-  theme: "light" | "dark";
-  width?: number;
   className?: string;
+  mark?: boolean;
+  inverted?: boolean;
 }) {
-  const src = theme === "dark" ? "/logo-dark-full.png" : "/logo-light-full.png";
-  const height = Math.round(width * (237 / 287));
+  if (mark) {
+    return (
+      <div
+        className={cn(
+          "flex h-9 w-9 items-center justify-center rounded-xl bg-accent-mesh text-white",
+          className
+        )}
+      >
+        <Zap className="h-5 w-5" fill="currentColor" />
+      </div>
+    );
+  }
   return (
-    <Image
-      src={src}
-      alt="EasyBills — Pay, Buy, Recharge"
-      width={width}
-      height={height}
-      className={className}
-      priority
-    />
+    <div className={cn("flex items-center gap-2.5", className)}>
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-mesh text-white">
+        <Zap className="h-4 w-4" fill="currentColor" />
+      </div>
+      <span className="font-display text-lg font-bold tracking-tight">
+        Easy
+        <span className={inverted ? "text-brand-200" : "text-brand-600"}>Bills</span>
+      </span>
+    </div>
   );
 }
