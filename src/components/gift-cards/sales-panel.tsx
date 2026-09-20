@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Inbox } from "lucide-react";
-import { getGiftCardSales, ApiRequestError } from "@/lib/api";
-import type { GiftCardSale } from "@/lib/types";
+import { Inbox, Info } from "lucide-react";
+import { getGiftCardSellTrades, ApiRequestError } from "@/lib/api";
+import type { GiftCardSellTrade } from "@/lib/types";
 import { LoadingState, ErrorState, EmptyState } from "@/components/states";
 import { formatDate, formatNaira, cx } from "@/lib/utils";
 
@@ -22,8 +21,8 @@ const STATUS_TONE: Record<string, string> = {
 };
 
 export function SalesPanel() {
-  const [status, setStatus] = useState("pending");
-  const [sales, setSales] = useState<GiftCardSale[]>([]);
+  const [status, setStatus] = useState("all");
+  const [trades, setTrades] = useState<GiftCardSellTrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,10 +30,10 @@ export function SalesPanel() {
     setLoading(true);
     setError(null);
     try {
-      const res = await getGiftCardSales(s);
-      setSales(res.data);
+      const res = await getGiftCardSellTrades(s);
+      setTrades(res.data);
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : "Couldn't load sell submissions.");
+      setError(err instanceof ApiRequestError ? err.message : "Couldn't load sell trades.");
     } finally {
       setLoading(false);
     }
@@ -47,6 +46,12 @@ export function SalesPanel() {
 
   return (
     <div>
+      <div className="mb-4 flex items-start gap-2 rounded-lg border border-line bg-base px-3 py-2.5 text-xs text-ink-faint">
+        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        Sell trades are verified and paid out automatically by Sogo Africa via webhook — there's
+        nothing to approve or reject here. This list is oversight only.
+      </div>
+
       <div className="mb-4 inline-flex rounded-lg bg-base p-1">
         {TABS.map((t) => (
           <button
@@ -63,19 +68,19 @@ export function SalesPanel() {
       </div>
 
       <div className="rounded-2xl border border-line bg-surface shadow-card">
-        {loading && <LoadingState label="Loading submissions…" />}
+        {loading && <LoadingState label="Loading trades…" />}
         {!loading && error && <ErrorState message={error} onRetry={() => load(status)} />}
-        {!loading && !error && sales.length === 0 && (
+        {!loading && !error && trades.length === 0 && (
           <div className="p-4">
             <EmptyState
               icon={Inbox}
               title="Nothing here"
-              description="Sell submissions matching this filter will show up here for review."
+              description="Sell trades matching this filter will show up here."
             />
           </div>
         )}
 
-        {!loading && !error && sales.length > 0 && (
+        {!loading && !error && trades.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
@@ -89,13 +94,11 @@ export function SalesPanel() {
                 </tr>
               </thead>
               <tbody>
-                {sales.map((s) => (
-                  <tr key={s.id} className="border-b border-line-soft last:border-0 hover:bg-surface-hover">
+                {trades.map((s) => (
+                  <tr key={s.id} className="border-b border-line-soft last:border-0">
                     <td className="px-4 py-3">
-                      <Link href={`/gift-cards/sales/${s.id}`} className="block">
-                        <span className="font-medium text-ink">{s.customerName || "—"}</span>
-                        <span className="block text-xs text-ink-faint">{s.customerEmail}</span>
-                      </Link>
+                      <span className="block font-medium text-ink">{s.customerName || "—"}</span>
+                      <span className="block text-xs text-ink-faint">{s.customerEmail}</span>
                     </td>
                     <td className="px-4 py-3 text-ink-muted">{s.brandName}</td>
                     <td className="px-4 py-3 text-ink-muted">{formatNaira(s.faceValueAmount)}</td>
@@ -109,6 +112,11 @@ export function SalesPanel() {
                       >
                         {s.status}
                       </span>
+                      {s.status === "rejected" && s.adminNote && (
+                        <span className="mt-1 block max-w-[200px] truncate text-[11px] text-ink-faint" title={s.adminNote}>
+                          {s.adminNote}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-ink-muted">{formatDate(s.createdAt)}</td>
                   </tr>

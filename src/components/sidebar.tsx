@@ -15,6 +15,9 @@ import {
   CreditCard,
   Plane,
   Megaphone,
+  Radio,
+  Percent,
+  ShieldCheck,
 } from "lucide-react";
 import { cx } from "@/lib/utils";
 import { Logo } from "@/components/logo";
@@ -37,6 +40,7 @@ export const NAV_SECTIONS = [
       { href: "/wallets", label: "Wallets", icon: Wallet },
       { href: "/gift-cards", label: "Gift Cards", icon: CreditCard },
       { href: "/flights", label: "Flights", icon: Plane },
+      { href: "/providers", label: "Providers", icon: Radio },
       { href: "/notifications", label: "Notifications", icon: Megaphone },
     ],
   },
@@ -47,6 +51,13 @@ export const NAV_SECTIONS = [
       { href: "/referral-program", label: "Referral Program", icon: Gift },
     ],
   },
+  {
+    label: "Settings",
+    items: [
+      { href: "/pricing", label: "Pricing", icon: Percent },
+      { href: "/kyc", label: "KYC", icon: ShieldCheck },
+    ],
+  },
 ];
 
 export function Sidebar() {
@@ -55,7 +66,7 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-surface/70 px-4 py-6 lg:flex">
       <Link href="/dashboard" className="mb-8 px-2">
-        <Logo  />
+        <Logo size="md" />
       </Link>
 
       <nav className="flex-1 space-y-6 overflow-y-auto pr-1">

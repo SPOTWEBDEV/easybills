@@ -2,27 +2,25 @@
 
 import { useState } from "react";
 import { cx } from "@/lib/utils";
-import { BrandsPanel } from "@/components/gift-cards/brands-panel";
-import { StockPanel } from "@/components/gift-cards/stock-panel";
-import { SalesPanel } from "@/components/gift-cards/sales-panel";
+import { ApplicationsPanel } from "@/components/kyc/applications-panel";
+import { TierLimitsPanel } from "@/components/kyc/tier-limits-panel";
 
 const TABS = [
-  { id: "brands", label: "Brands" },
-  { id: "stock", label: "Stock" },
-  { id: "sales", label: "Sell Trades" },
+  { id: "applications", label: "Applications" },
+  { id: "tier-limits", label: "Tier Limits" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
-export default function GiftCardsPage() {
-  const [tab, setTab] = useState<TabId>("brands");
+export default function KycPage() {
+  const [tab, setTab] = useState<TabId>("applications");
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Gift Cards</h1>
+        <h1 className="font-display text-2xl font-bold text-ink">KYC</h1>
         <p className="mt-1 text-sm text-ink-faint">
-          Manage buy-side brands and stock. Sell trades are handled automatically by Sogo Africa.
+          Review NIN/BVN applications and set wallet &amp; transaction limits per tier
         </p>
       </div>
 
@@ -41,9 +39,8 @@ export default function GiftCardsPage() {
         ))}
       </div>
 
-      {tab === "brands" && <BrandsPanel />}
-      {tab === "stock" && <StockPanel />}
-      {tab === "sales" && <SalesPanel />}
+      {tab === "applications" && <ApplicationsPanel />}
+      {tab === "tier-limits" && <TierLimitsPanel />}
     </div>
   );
 }

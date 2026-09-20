@@ -21,15 +21,15 @@ export function BrandsPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // per-row editable state, keyed by brand id
-  const [drafts, setDrafts] = useState<Record<string, { sellRatePercent: string; buyEnabled: boolean; sellEnabled: boolean; status: "active" | "inactive" }>>({});
+  // per-row editable state, keyed by brand id — buy + status only; the sell
+  // rate/toggle moved to Sogo Africa and is no longer admin-configurable.
+  const [drafts, setDrafts] = useState<Record<string, { buyEnabled: boolean; status: "active" | "inactive" }>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [rowError, setRowError] = useState<Record<string, string>>({});
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newId, setNewId] = useState("");
   const [newName, setNewName] = useState("");
-  const [newRate, setNewRate] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -41,12 +41,7 @@ export function BrandsPanel() {
       setBrands(res.data);
       const nextDrafts: typeof drafts = {};
       for (const b of res.data) {
-        nextDrafts[b.id] = {
-          sellRatePercent: String(b.sellRatePercent),
-          buyEnabled: b.buyEnabled,
-          sellEnabled: b.sellEnabled,
-          status: b.status,
-        };
+        nextDrafts[b.id] = { buyEnabled: b.buyEnabled, status: b.status };
       }
       setDrafts(nextDrafts);
     } catch (err) {
@@ -66,20 +61,10 @@ export function BrandsPanel() {
 
   async function handleSaveRow(id: string) {
     const draft = drafts[id];
-    const rate = Number(draft.sellRatePercent);
-    if (Number.isNaN(rate) || rate < 0) {
-      setRowError((e) => ({ ...e, [id]: "Enter a valid sell rate." }));
-      return;
-    }
     setRowError((e) => ({ ...e, [id]: "" }));
     setSavingId(id);
     try {
-      await updateGiftCardBrand(id, {
-        sellRatePercent: rate,
-        buyEnabled: draft.buyEnabled,
-        sellEnabled: draft.sellEnabled,
-        status: draft.status,
-      });
+      await updateGiftCardBrand(id, { buyEnabled: draft.buyEnabled, status: draft.status });
       await load();
     } catch (err) {
       setRowError((e) => ({
@@ -94,17 +79,15 @@ export function BrandsPanel() {
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
     setCreateError(null);
-    const rate = Number(newRate);
-    if (!newId.trim() || !newName.trim() || Number.isNaN(rate) || rate < 0) {
-      setCreateError("Fill in an id, a name, and a valid sell rate.");
+    if (!newId.trim() || !newName.trim()) {
+      setCreateError("Fill in an id and a name.");
       return;
     }
     setCreating(true);
     try {
-      await createGiftCardBrand({ id: newId.trim(), name: newName.trim(), sellRatePercent: rate });
+      await createGiftCardBrand({ id: newId.trim(), name: newName.trim() });
       setNewId("");
       setNewName("");
-      setNewRate("");
       setShowAddForm(false);
       await load();
     } catch (err) {
@@ -119,11 +102,17 @@ export function BrandsPanel() {
 
   return (
     <div>
+      <div className="mb-4 rounded-lg border border-line bg-base px-3 py-2.5 text-xs text-ink-faint">
+        Selling is handled automatically by Sogo Africa now — there's no sell rate or sell toggle
+        to set here per brand. This only controls the <span className="font-medium text-ink-muted">buy</span> direction
+        (stock you've sourced yourself).
+      </div>
+
       {!isSuperAdmin && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-line bg-base px-3 py-2 text-xs text-ink-faint">
           <Lock className="h-3.5 w-3.5" />
-          Only super admins can change rates, toggles, or add brands — you can still view
-          everything below.
+          Only super admins can change buy status or add brands — you can still view everything
+          below.
         </div>
       )}
 
@@ -139,7 +128,7 @@ export function BrandsPanel() {
             </button>
           ) : (
             <form onSubmit={handleCreate} className="rounded-2xl border border-line bg-surface p-5">
-              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-1 block text-xs font-medium text-ink-muted">
                     Brand id (slug, permanent)
@@ -157,16 +146,6 @@ export function BrandsPanel() {
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="Steam"
-                    className="w-full rounded-lg border border-line bg-base px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-brand-500 focus:outline-none"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-xs font-medium text-ink-muted">Sell rate (%)</span>
-                  <input
-                    type="number"
-                    value={newRate}
-                    onChange={(e) => setNewRate(e.target.value)}
-                    placeholder="80"
                     className="w-full rounded-lg border border-line bg-base px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-brand-500 focus:outline-none"
                   />
                 </label>
@@ -189,8 +168,7 @@ export function BrandsPanel() {
                 </button>
               </div>
               <p className="mt-2 text-[11px] text-ink-faint">
-                New brands start with buy and sell both off — flip them on once you've confirmed
-                the rate (and, for buying, loaded stock).
+                New brands start with buying off — flip it on once you've loaded stock.
               </p>
             </form>
           )}
@@ -203,7 +181,7 @@ export function BrandsPanel() {
             <EmptyState
               icon={CreditCard}
               title="No gift card brands yet"
-              description="Add a brand above to start accepting buy or sell requests for it."
+              description="Add a brand above to start accepting buy requests for it."
             />
           </div>
         ) : (
@@ -212,9 +190,7 @@ export function BrandsPanel() {
               <thead>
                 <tr className="border-b border-line text-xs uppercase tracking-wide text-ink-faint">
                   <th className="px-4 py-3 font-medium">Brand</th>
-                  <th className="px-4 py-3 font-medium">Sell rate (%)</th>
-                  <th className="px-4 py-3 font-medium">Buy</th>
-                  <th className="px-4 py-3 font-medium">Sell</th>
+                  <th className="px-4 py-3 font-medium">Buy enabled</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   {isSuperAdmin && <th className="px-4 py-3 font-medium text-right">Action</th>}
                 </tr>
@@ -231,28 +207,10 @@ export function BrandsPanel() {
                       </td>
                       <td className="px-4 py-3">
                         <input
-                          type="number"
-                          disabled={!isSuperAdmin}
-                          value={draft.sellRatePercent}
-                          onChange={(e) => updateDraft(b.id, { sellRatePercent: e.target.value })}
-                          className="w-20 rounded-lg border border-line bg-base px-2 py-1.5 text-sm text-ink focus:border-brand-500 focus:outline-none disabled:opacity-60"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
                           type="checkbox"
                           disabled={!isSuperAdmin}
                           checked={draft.buyEnabled}
                           onChange={(e) => updateDraft(b.id, { buyEnabled: e.target.checked })}
-                          className="h-4 w-4 accent-brand-500 disabled:opacity-60"
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          disabled={!isSuperAdmin}
-                          checked={draft.sellEnabled}
-                          onChange={(e) => updateDraft(b.id, { sellEnabled: e.target.checked })}
                           className="h-4 w-4 accent-brand-500 disabled:opacity-60"
                         />
                       </td>

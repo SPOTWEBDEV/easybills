@@ -8,7 +8,7 @@ import type { Customer } from "@/lib/types";
 import { StatCard } from "@/components/stat-card";
 import { KycBadge, AccountStatusBadge } from "@/components/status-badge";
 import { LoadingState, ErrorState, EmptyState } from "@/components/states";
-import { formatDate, formatNaira } from "@/lib/utils";
+import { formatDate, formatNaira, getInitials } from "@/lib/utils";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -48,7 +48,7 @@ export default function CustomersPage() {
     const q = query.toLowerCase();
     return customers.filter(
       (c) =>
-        c.fullName.toLowerCase().includes(q) ||
+        c.name.toLowerCase().includes(q) ||
         c.email.toLowerCase().includes(q) ||
         c.phone.includes(q)
     );
@@ -109,24 +109,29 @@ export default function CustomersPage() {
                     <td className="px-4 py-3">
                       <Link href={`/customers/${c.id}`} className="flex items-center gap-3">
                         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-semibold text-brand-600">
-                          {c.avatarInitials}
+                          {getInitials(c.name)}
                         </span>
                         <span>
-                          <span className="block font-medium text-ink">{c.fullName}</span>
+                          <span className="block font-medium text-ink">{c.name}</span>
                           <span className="block text-xs text-ink-faint">{c.email}</span>
                         </span>
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-ink-muted">{c.phone}</td>
-                    <td className="px-4 py-3 text-ink-muted">{formatNaira(c.balance ?? 0)}</td>
+                    <td className="px-4 py-3 text-ink-muted">{formatNaira(c.walletBalance)}</td>
                     <td className="px-4 py-3 text-ink-muted">{c.tier}</td>
                     <td className="px-4 py-3">
                       <KycBadge status={c.kycStatus} />
                     </td>
                     <td className="px-4 py-3">
                       <AccountStatusBadge status={c.status} />
+                      {c.status === "suspended" && c.suspensionReason && (
+                        <span className="mt-1 block max-w-[180px] truncate text-[11px] text-ink-faint" title={c.suspensionReason}>
+                          {c.suspensionReason}
+                        </span>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-ink-muted">{formatDate(c.createdAt)}</td>
+                    <td className="px-4 py-3 text-ink-muted">{formatDate(c.joinedAt)}</td>
                   </tr>
                 ))}
               </tbody>

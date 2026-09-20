@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, Receipt } from "lucide-react";
+import Link from "next/link";
+import { Search, Receipt, Radio } from "lucide-react";
 import { getAdminTransactions, ApiRequestError } from "@/lib/api";
 import type { Transaction } from "@/lib/types";
 import { TransactionStatusBadge } from "@/components/status-badge";
@@ -51,12 +52,29 @@ export default function TransactionsPage() {
     );
   }, [transactions, query]);
 
+  const failedCount = useMemo(
+    () => transactions.filter((t) => t.status === "failed").length,
+    [transactions]
+  );
+
   return (
     <div>
       <div className="mb-6">
         <h1 className="font-display text-2xl font-bold text-ink">Transactions</h1>
         <p className="mt-1 text-sm text-ink-faint">Every transaction processed on the platform</p>
       </div>
+
+      {tab === "failed" && !loading && failedCount > 2 && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-warn/30 bg-warn/10 px-3 py-2.5 text-xs text-warn">
+          <Radio className="h-3.5 w-3.5 shrink-0" />
+          Several failures here — if this spans multiple services, check{" "}
+          <Link href="/providers" className="font-medium underline">
+            Providers
+          </Link>{" "}
+          first to rule out a connectivity/credentials issue before digging into individual
+          transactions.
+        </div>
+      )}
 
       <div className="rounded-2xl border border-line bg-surface shadow-card">
         <div className="flex flex-col gap-4 border-b border-line p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -103,6 +121,7 @@ export default function TransactionsPage() {
                   <th className="px-4 py-3 font-medium">Customer</th>
                   <th className="px-4 py-3 font-medium">Service</th>
                   <th className="px-4 py-3 font-medium">Amount</th>
+                  <th className="px-4 py-3 font-medium">Fee</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Date</th>
                 </tr>
@@ -111,11 +130,25 @@ export default function TransactionsPage() {
                 {filtered.map((t) => (
                   <tr key={t.id} className="border-b border-line-soft last:border-0 hover:bg-surface-hover">
                     <td className="px-4 py-3 font-mono text-xs text-ink-muted">{t.reference}</td>
-                    <td className="px-4 py-3 text-ink">{t.customerName || "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className="block text-ink">{t.customerName || "—"}</span>
+                      {t.customerEmail && (
+                        <span className="block text-xs text-ink-faint">{t.customerEmail}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-ink-muted">{t.title}</td>
                     <td className="px-4 py-3 text-ink-muted">{formatNaira(t.amount)}</td>
+                    <td className="px-4 py-3 text-ink-muted">{t.fee > 0 ? formatNaira(t.fee) : "—"}</td>
                     <td className="px-4 py-3">
                       <TransactionStatusBadge status={t.status} />
+                      {t.status === "failed" && t.failureReason && (
+                        <span
+                          className="mt-1 block max-w-[220px] truncate text-[11px] text-ink-faint"
+                          title={t.failureReason}
+                        >
+                          {t.failureReason}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-ink-muted">{formatDate(t.date)}</td>
                   </tr>

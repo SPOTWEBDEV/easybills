@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Ban, CheckCircle2, Receipt, Wallet } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, Fingerprint, Receipt, Wallet } from "lucide-react";
 import { getCustomer, suspendCustomer, reactivateCustomer, ApiRequestError } from "@/lib/api";
 import type { CustomerDetail } from "@/lib/types";
 import { KycBadge, AccountStatusBadge, TransactionStatusBadge } from "@/components/status-badge";
 import { LoadingState, ErrorState, EmptyState } from "@/components/states";
-import { formatDate, formatNaira } from "@/lib/utils";
+import { formatDate, formatNaira, getInitials, cx } from "@/lib/utils";
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +16,10 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  const [showSuspendForm, setShowSuspendForm] = useState(false);
+  const [suspendReason, setSuspendReason] = useState("");
+  const [suspendError, setSuspendError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -35,18 +39,34 @@ export default function CustomerDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  async function handleToggleStatus() {
-    if (!detail) return;
+  async function handleSuspend(e: FormEvent) {
+    e.preventDefault();
+    setSuspendError(null);
+    const reason = suspendReason.trim();
+    if (reason.length < 3 || reason.length > 255) {
+      setSuspendError("Reason must be 3–255 characters.");
+      return;
+    }
     setActionLoading(true);
     try {
-      if (detail.user.status === "active") {
-        await suspendCustomer(id);
-      } else {
-        await reactivateCustomer(id);
-      }
+      await suspendCustomer(id, reason);
+      setShowSuspendForm(false);
+      setSuspendReason("");
       await load();
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : "Couldn't update this customer.");
+      setSuspendError(err instanceof ApiRequestError ? err.message : "Couldn't suspend this customer.");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleReactivate() {
+    setActionLoading(true);
+    try {
+      await reactivateCustomer(id);
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : "Couldn't reactivate this customer.");
     } finally {
       setActionLoading(false);
     }
@@ -70,39 +90,93 @@ export default function CustomerDetailPage() {
           <div className="mb-6 flex flex-col justify-between gap-4 rounded-2xl border border-line bg-surface p-6 shadow-card sm:flex-row sm:items-center">
             <div className="flex items-center gap-4">
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500/15 text-lg font-semibold text-brand-600">
-                {detail.user.avatarInitials}
+                {getInitials(detail.user.name)}
               </span>
               <div>
-                <h1 className="font-display text-xl font-bold text-ink">{detail.user.fullName}</h1>
+                <h1 className="font-display text-xl font-bold text-ink">{detail.user.name}</h1>
                 <p className="text-sm text-ink-faint">{detail.user.email} · {detail.user.phone}</p>
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   <KycBadge status={detail.user.kycStatus} />
                   <AccountStatusBadge status={detail.user.status} />
                   <span className="text-xs text-ink-faint">{detail.user.tier}</span>
+                  <span
+                    className={cx(
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                      detail.user.ninVerified ? "bg-good/15 text-good" : "bg-surface-hover text-ink-faint"
+                    )}
+                  >
+                    <Fingerprint className="h-3 w-3" /> NIN {detail.user.ninVerified ? "verified" : "unverified"}
+                  </span>
+                  <span
+                    className={cx(
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                      detail.user.bvnVerified ? "bg-good/15 text-good" : "bg-surface-hover text-ink-faint"
+                    )}
+                  >
+                    <Fingerprint className="h-3 w-3" /> BVN {detail.user.bvnVerified ? "verified" : "unverified"}
+                  </span>
                 </div>
+                {detail.user.status === "suspended" && detail.user.suspensionReason && (
+                  <p className="mt-2 text-xs text-bad">Suspended: {detail.user.suspensionReason}</p>
+                )}
               </div>
             </div>
 
-            <button
-              onClick={handleToggleStatus}
-              disabled={actionLoading}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
-                detail.user.status === "active"
-                  ? "bg-bad/15 text-bad hover:bg-bad/25"
-                  : "bg-good/15 text-good hover:bg-good/25"
-              }`}
-            >
-              {detail.user.status === "active" ? (
-                <>
-                  <Ban className="h-4 w-4" /> Suspend account
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4" /> Reactivate account
-                </>
-              )}
-            </button>
+            {detail.user.status === "active" ? (
+              <button
+                onClick={() => setShowSuspendForm((s) => !s)}
+                disabled={actionLoading}
+                className="inline-flex items-center gap-2 rounded-full bg-bad/15 px-4 py-2 text-sm font-semibold text-bad transition-colors hover:bg-bad/25 disabled:opacity-60"
+              >
+                <Ban className="h-4 w-4" /> Suspend account
+              </button>
+            ) : (
+              <button
+                onClick={handleReactivate}
+                disabled={actionLoading}
+                className="inline-flex items-center gap-2 rounded-full bg-good/15 px-4 py-2 text-sm font-semibold text-good transition-colors hover:bg-good/25 disabled:opacity-60"
+              >
+                <CheckCircle2 className="h-4 w-4" /> Reactivate account
+              </button>
+            )}
           </div>
+
+          {showSuspendForm && (
+            <form
+              onSubmit={handleSuspend}
+              className="mb-6 rounded-2xl border border-bad/30 bg-bad/5 p-6"
+            >
+              <label className="mb-3 block">
+                <span className="mb-1.5 block text-xs font-medium text-ink-muted">
+                  Reason for suspension (shown to the customer, 3–255 characters)
+                </span>
+                <textarea
+                  rows={2}
+                  value={suspendReason}
+                  onChange={(e) => setSuspendReason(e.target.value)}
+                  placeholder="e.g. Suspected fraudulent referral activity"
+                  className="w-full resize-none rounded-lg border border-line bg-base px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-bad focus:outline-none"
+                />
+              </label>
+              {suspendError && <p className="mb-3 text-xs text-bad">{suspendError}</p>}
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={actionLoading}
+                  className="rounded-full bg-bad px-5 py-2 text-sm font-semibold text-paper-50 hover:bg-bad/90 disabled:opacity-60"
+                >
+                  {actionLoading ? "Suspending…" : "Confirm suspend"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSuspendForm(false)}
+                  className="rounded-full border border-line px-5 py-2 text-sm font-medium text-ink-muted hover:text-ink"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
 
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border border-line bg-surface p-6 shadow-card">
@@ -149,6 +223,11 @@ export default function CustomerDetailPage() {
                         <td className="px-4 py-3 text-ink-muted">{formatNaira(t.amount)}</td>
                         <td className="px-4 py-3">
                           <TransactionStatusBadge status={t.status} />
+                          {t.status === "failed" && t.failureReason && (
+                            <span className="mt-1 block max-w-[220px] truncate text-[11px] text-ink-faint" title={t.failureReason}>
+                              {t.failureReason}
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-ink-muted">{formatDate(t.date)}</td>
                       </tr>

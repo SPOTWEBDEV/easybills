@@ -34,7 +34,7 @@ export default function WalletsPage() {
   }, []);
 
   const totalBalance = useMemo(
-    () => customers.reduce((sum, c) => sum + (c.balance || 0), 0),
+    () => customers.reduce((sum, c) => sum + (c.walletBalance || 0), 0),
     [customers]
   );
   const totalFunded = useMemo(

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, Lock, Save } from "lucide-react";
-import { getFxRates, getPricing, updateFxRate, updatePricing, ApiRequestError } from "@/lib/api";
-import type { FxRate, PricingRule } from "@/lib/types";
+import Link from "next/link";
+import { AlertTriangle, ArrowRight, Lock, Save } from "lucide-react";
+import { getFxRates, updateFxRate, ApiRequestError } from "@/lib/api";
+import type { FxRate } from "@/lib/types";
 import { useAuth } from "@/lib/auth";
 import { LoadingState, ErrorState } from "@/components/states";
 import { formatDate } from "@/lib/utils";
@@ -13,7 +14,6 @@ export function FxRatesPanel() {
   const isSuperAdmin = admin?.role === "super_admin";
 
   const [rates, setRates] = useState<FxRate[]>([]);
-  const [flightRule, setFlightRule] = useState<PricingRule | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,25 +21,15 @@ export function FxRatesPanel() {
   const [savingCurrency, setSavingCurrency] = useState<string | null>(null);
   const [rateRowError, setRateRowError] = useState<Record<string, string>>({});
 
-  const [markupDraft, setMarkupDraft] = useState("");
-  const [savingMarkup, setSavingMarkup] = useState(false);
-  const [markupError, setMarkupError] = useState<string | null>(null);
-  const [markupSaved, setMarkupSaved] = useState(false);
-
   async function load() {
     setLoading(true);
     setError(null);
     try {
-      const [ratesRes, pricingRes] = await Promise.all([getFxRates(), getPricing()]);
-      setRates(ratesRes.data);
-      setRateDrafts(
-        Object.fromEntries(ratesRes.data.map((r) => [r.currency, String(r.rateToNgn)]))
-      );
-      const flight = pricingRes.data.find((p) => p.name.toLowerCase() === "flight") || null;
-      setFlightRule(flight);
-      if (flight) setMarkupDraft(String(flight.marginValue));
+      const res = await getFxRates();
+      setRates(res.data);
+      setRateDrafts(Object.fromEntries(res.data.map((r) => [r.currency, String(r.rateToNgn)])));
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : "Couldn't load FX rates and markup.");
+      setError(err instanceof ApiRequestError ? err.message : "Couldn't load FX rates.");
     } finally {
       setLoading(false);
     }
@@ -70,27 +60,6 @@ export function FxRatesPanel() {
     }
   }
 
-  async function handleSaveMarkup() {
-    if (!flightRule) return;
-    setMarkupError(null);
-    setMarkupSaved(false);
-    const value = Number(markupDraft);
-    if (Number.isNaN(value) || value < 0) {
-      setMarkupError("Enter a valid percentage.");
-      return;
-    }
-    setSavingMarkup(true);
-    try {
-      await updatePricing(flightRule.id, { marginType: "percentage", marginValue: value });
-      setMarkupSaved(true);
-      await load();
-    } catch (err) {
-      setMarkupError(err instanceof ApiRequestError ? err.message : "Couldn't save the markup.");
-    } finally {
-      setSavingMarkup(false);
-    }
-  }
-
   if (loading) return <LoadingState label="Loading FX rates…" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
@@ -99,8 +68,7 @@ export function FxRatesPanel() {
       {!isSuperAdmin && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-line bg-base px-3 py-2 text-xs text-ink-faint">
           <Lock className="h-3.5 w-3.5" />
-          Only super admins can change FX rates or flight markup — you can still view current
-          values below.
+          Only super admins can change FX rates — you can still view current values below.
         </div>
       )}
 
@@ -110,40 +78,19 @@ export function FxRatesPanel() {
         Stale rates mean customers see the wrong price — keep these current (ideally daily).
       </div>
 
-      {flightRule && (
-        <div className="mb-6 rounded-2xl border border-line bg-surface p-6 shadow-card">
-          <h2 className="mb-1 font-display text-base font-semibold text-ink">Flight markup</h2>
-          <p className="mb-4 text-xs text-ink-faint">
-            Percentage added on top of the converted NGN price for every flight offer.
+      <Link
+        href="/pricing"
+        className="mb-6 flex items-center justify-between rounded-2xl border border-line bg-surface p-5 shadow-card transition-colors hover:border-brand-500/40"
+      >
+        <div>
+          <p className="font-display text-sm font-semibold text-ink">Flight markup</p>
+          <p className="text-xs text-ink-faint">
+            The percentage added on top of the converted NGN price is set from the Pricing page,
+            alongside every other service's margin.
           </p>
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-medium text-ink-muted">Margin (%)</span>
-              <input
-                type="number"
-                disabled={!isSuperAdmin}
-                value={markupDraft}
-                onChange={(e) => setMarkupDraft(e.target.value)}
-                className="w-28 rounded-lg border border-line bg-base px-3 py-2 text-sm text-ink focus:border-brand-500 focus:outline-none disabled:opacity-60"
-              />
-            </label>
-            {isSuperAdmin && (
-              <button
-                onClick={handleSaveMarkup}
-                disabled={savingMarkup}
-                className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-paper-50 hover:bg-brand-600 disabled:opacity-60"
-              >
-                <Save className="h-3.5 w-3.5" />
-                {savingMarkup ? "Saving…" : "Save"}
-              </button>
-            )}
-          </div>
-          {markupError && <p className="mt-2 text-xs text-bad">{markupError}</p>}
-          {markupSaved && !markupError && (
-            <p className="mt-2 text-xs text-good">Markup updated — applies to new offers from now on.</p>
-          )}
         </div>
-      )}
+        <ArrowRight className="h-4 w-4 shrink-0 text-ink-faint" />
+      </Link>
 
       <div className="rounded-2xl border border-line bg-surface shadow-card">
         <div className="border-b border-line p-4">
