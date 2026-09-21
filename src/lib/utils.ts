@@ -1,13 +1,6 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
 export function formatNaira(amount: number | undefined | null): string {
   const n = typeof amount === "number" ? amount : 0;
   return `₦${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
 }
 
 export function formatCompactNaira(amount: number | undefined | null): string {
@@ -30,6 +23,21 @@ export function formatDate(dateStr: string | undefined | null): string {
   });
 }
 
+export function cn(...classes: Array<string | number | boolean | null | undefined>): string {
+  return classes.filter(Boolean).join(" ");
+}
+
 export function cx(...classes: Array<string | false | null | undefined>): string {
   return classes.filter(Boolean).join(" ");
+}
+
+export function getInitials(name: string | undefined | null): string {
+  if (!name) return "?";
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }

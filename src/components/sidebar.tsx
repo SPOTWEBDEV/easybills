@@ -66,7 +66,7 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-surface/70 px-4 py-6 lg:flex">
       <Link href="/dashboard" className="mb-8 px-2">
-        <Logo size="md" />
+        <Logo />
       </Link>
 
       <nav className="flex-1 space-y-6 overflow-y-auto pr-1">
