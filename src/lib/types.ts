@@ -7,19 +7,24 @@ export interface AdminUser {
 
 export interface Customer {
   id: number;
-  fullName: string;
+  name: string;
   email: string;
   phone: string;
-  avatarInitials: string;
+  walletBalance: number;
   kycStatus: "unverified" | "pending" | "verified";
   tier: "Tier 1" | "Tier 2" | "Tier 3";
   status: "active" | "suspended";
-  balance?: number;
-  createdAt: string;
+  suspensionReason: string | null;
+  joinedAt: string;
+}
+
+export interface CustomerDetailUser extends Customer {
+  ninVerified: boolean;
+  bvnVerified: boolean;
 }
 
 export interface CustomerDetail {
-  user: Customer;
+  user: CustomerDetailUser;
   wallet: { balance: number; cashback: number; currency: string };
   recentTransactions: Transaction[];
 }
@@ -38,6 +43,8 @@ export interface Transaction {
   recipient: string;
   balanceAfter: number;
   customerName?: string;
+  customerEmail?: string;
+  failureReason?: string | null;
 }
 
 export interface DashboardStats {
@@ -99,13 +106,15 @@ export interface AdminBroadcast {
 }
 
 // ---- Gift cards ----
+// The sell direction (customer cashing in a card) moved to an automated
+// Sogo Africa integration — admin no longer sets a sell rate, enables/
+// disables selling per brand, or approves/rejects individual trades. The
+// buy direction (admin-sourced stock) is unchanged.
 
 export interface GiftCardBrand {
   id: string;
   name: string;
-  sellRatePercent: number;
   buyEnabled: boolean;
-  sellEnabled: boolean;
   status: "active" | "inactive";
 }
 
@@ -115,7 +124,9 @@ export interface GiftCardStockItem {
   available: number;
 }
 
-export interface GiftCardSale {
+// Read-only oversight of Sogo's sell-side verification — there is nothing
+// for admin to action here anymore.
+export interface GiftCardSellTrade {
   id: number;
   brandId: string;
   brandName: string;
@@ -128,11 +139,6 @@ export interface GiftCardSale {
   reviewedAt: string | null;
   customerName?: string;
   customerEmail?: string;
-}
-
-export interface GiftCardSaleDetail extends GiftCardSale {
-  cardCode: string;
-  cardPin?: string | null;
 }
 
 // ---- Flights ----
@@ -159,13 +165,65 @@ export interface FxRate {
   updatedAt: string;
 }
 
-// Used only for the "flight" markup row here — the wider product/pricing
-// catalog this originally belonged to was removed from this build.
+// ---- Pricing (profit margins) ----
+// One row per service category: airtime, data, electricity, cable,
+// exam-pin, flight, gift-card. See the Pricing page for how each category
+// actually applies its margin — they're not all the same mechanism.
 export interface PricingRule {
   id: number;
-  name: string;
+  service: string;
   marginType: "fixed" | "percentage";
   marginValue: number;
+  updatedAt: string;
+}
+
+// ---- Providers ----
+
+export interface Provider {
+  id: string;
+  name: string;
+  type: "network" | "electricity" | "cable" | string;
+  status: "active" | "inactive" | string;
+}
+
+export interface EpinsStatus {
+  connected: boolean;
+  raw?: unknown;
+  error?: string;
+}
+
+// ---- KYC ----
+// Tier upgrades (NIN -> Tier 2, BVN -> Tier 3) are admin-reviewed, not
+// automated: a user submits, it sits pending, and an admin approves or
+// declines it. The tier only ever changes at the moment of approval.
+
+export interface KycTierLimit {
+  tier: "tier1" | "tier2" | "tier3";
+  maxWalletBalance: number;
+  maxSingleTransaction: number;
+  maxDailyTotal: number;
+  updatedAt: string;
+}
+
+export interface KycApplication {
+  id: number;
+  type: "nin" | "bvn";
+  dateOfBirth: string | null;
+  status: "pending" | "approved" | "declined";
+  declineReason: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+}
+
+// The only endpoint that ever reveals the decrypted NIN/BVN — every access
+// is written to the audit log.
+export interface KycApplicationDetail extends KycApplication {
+  idNumber: string;
+  bureauSnapshot: Record<string, unknown> | null;
+  accountHolder: { fullName: string; email: string; phone: string };
 }
 
 export interface ApiError {
@@ -173,4 +231,5 @@ export interface ApiError {
   fields?: Record<string, string>;
   sessionExpired?: boolean;
   requiresPin?: boolean;
+  tierLimitExceeded?: boolean;
 }

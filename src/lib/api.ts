@@ -5,12 +5,16 @@ import type {
   Customer,
   CustomerDetail,
   DashboardStats,
+  EpinsStatus,
   FxRate,
   GiftCardBrand,
-  GiftCardSale,
-  GiftCardSaleDetail,
+  GiftCardSellTrade,
   GiftCardStockItem,
+  KycApplication,
+  KycApplicationDetail,
+  KycTierLimit,
   PricingRule,
+  Provider,
   ReferralProgram,
   RevenueTrendPoint,
   TopService,
@@ -41,13 +45,21 @@ export class ApiRequestError extends Error {
   status: number;
   fields?: Record<string, string>;
   sessionExpired?: boolean;
+  tierLimitExceeded?: boolean;
 
-  constructor(message: string, status: number, fields?: Record<string, string>, sessionExpired?: boolean) {
+  constructor(
+    message: string,
+    status: number,
+    fields?: Record<string, string>,
+    sessionExpired?: boolean,
+    tierLimitExceeded?: boolean
+  ) {
     super(message);
     this.name = "ApiRequestError";
     this.status = status;
     this.fields = fields;
     this.sessionExpired = sessionExpired;
+    this.tierLimitExceeded = tierLimitExceeded;
   }
 }
 
@@ -94,7 +106,8 @@ async function request<T>(
       body?.error || `Request failed (${res.status})`,
       res.status,
       body?.fields,
-      body?.sessionExpired
+      body?.sessionExpired,
+      body?.tierLimitExceeded
     );
   }
 
@@ -139,8 +152,13 @@ export function getCustomer(id: number | string) {
   return request<CustomerDetail>(`/admin/customers/${id}`);
 }
 
-export function suspendCustomer(id: number | string) {
-  return request<{ success: boolean }>(`/admin/customers/${id}/suspend`, { method: "POST" });
+// Suspending now requires a reason (3-255 chars) — it's written to the audit
+// log and shown to the customer on their next login attempt.
+export function suspendCustomer(id: number | string, reason: string) {
+  return request<{ success: boolean }>(`/admin/customers/${id}/suspend`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
 }
 
 export function reactivateCustomer(id: number | string) {
@@ -152,6 +170,34 @@ export function reactivateCustomer(id: number | string) {
 export function getAdminTransactions(status?: string) {
   const qs = status && status !== "all" ? `?status=${status}` : "";
   return request<{ data: Transaction[] }>(`/admin/transactions${qs}`);
+}
+
+// ---- Providers ----
+// Check epins-status FIRST whenever airtime/data/electricity/cable/exam-pin
+// purchases start failing broadly — it isolates a credentials/connectivity
+// problem before you need to dig into individual transaction failureReasons.
+
+export function getProviders() {
+  return request<{ data: Provider[] }>("/admin/providers");
+}
+
+export function getEpinsStatus() {
+  return request<EpinsStatus>("/admin/providers/epins-status");
+}
+
+// ---- Pricing (profit margins) ----
+// Categories: airtime, data, electricity, cable, exam-pin, flight,
+// gift-card. Each applies its margin differently — see the Pricing page.
+
+export function getPricing() {
+  return request<{ data: PricingRule[] }>("/admin/pricing");
+}
+
+export function updatePricing(id: number | string, body: { marginType: string; marginValue: number }) {
+  return request<{ success: boolean }>(`/admin/pricing/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
 }
 
 // ---- Referral program ----
@@ -190,21 +236,16 @@ export function sendAdminBroadcast(body: {
 }
 
 // ---- Gift cards ----
-// "Buy" is instant (customer purchases pre-loaded stock); "sell" always
-// lands in a pending queue that a human must approve or reject — nothing is
-// ever auto-paid on the sell side.
+// Buy direction: admin-sourced stock, purchased instantly by the customer.
+// Sell direction: verified and paid out automatically by Sogo Africa via
+// webhook — admin no longer sets a sell rate/toggle per brand, and there is
+// no approve/reject step; the sell-trades list below is read-only oversight.
 
 export function getGiftCardBrands() {
   return request<{ data: GiftCardBrand[] }>("/admin/giftcards/brands");
 }
 
-export function createGiftCardBrand(body: {
-  id: string;
-  name: string;
-  sellRatePercent: number;
-  buyEnabled?: boolean;
-  sellEnabled?: boolean;
-}) {
+export function createGiftCardBrand(body: { id: string; name: string; buyEnabled?: boolean }) {
   return request<{ id: string }>("/admin/giftcards/brands", {
     method: "POST",
     body: JSON.stringify(body),
@@ -213,7 +254,7 @@ export function createGiftCardBrand(body: {
 
 export function updateGiftCardBrand(
   id: string,
-  body: { sellRatePercent: number; buyEnabled?: boolean; sellEnabled?: boolean; status?: "active" | "inactive" }
+  body: { buyEnabled?: boolean; status?: "active" | "inactive" }
 ) {
   return request<{ success: boolean }>(`/admin/giftcards/brands/${id}`, {
     method: "PUT",
@@ -239,33 +280,17 @@ export function addGiftCardStock(body: {
   });
 }
 
-export function getGiftCardSales(status?: string) {
+export function getGiftCardSellTrades(status?: string) {
   const qs = status && status !== "all" ? `?status=${status}` : "";
-  return request<{ data: GiftCardSale[] }>(`/admin/giftcards/sales${qs}`);
-}
-
-// The only endpoint that ever reveals the decrypted card code/PIN — every
-// call here is written to the backend's audit log.
-export function getGiftCardSaleDetail(id: number | string) {
-  return request<GiftCardSaleDetail>(`/admin/giftcards/sales/${id}`);
-}
-
-export function approveGiftCardSale(id: number | string) {
-  return request<{ success: boolean }>(`/admin/giftcards/sales/${id}/approve`, { method: "POST" });
-}
-
-export function rejectGiftCardSale(id: number | string, reason?: string) {
-  return request<{ success: boolean }>(`/admin/giftcards/sales/${id}/reject`, {
-    method: "POST",
-    body: JSON.stringify({ reason }),
-  });
+  return request<{ data: GiftCardSellTrade[] }>(`/admin/giftcards/sell-trades${qs}`);
 }
 
 // ---- Flights (Duffel) ----
 // This backend never charges in whatever currency Duffel quotes an offer in
 // — every price is converted to NGN using an admin-set FX rate before
 // anything is shown or charged. Keeping those rates current is what makes
-// flight pricing accurate; see the FX Rates panel.
+// flight pricing accurate; see the FX Rates panel. The flight markup itself
+// is set from the Pricing page (the "flight" row), not here.
 
 export function getAdminFlightBookings(status?: string) {
   const qs = status && status !== "all" ? `?status=${status}` : "";
@@ -283,17 +308,47 @@ export function updateFxRate(currency: string, rateToNgn: number) {
   });
 }
 
-// Flight markup shares the same /admin/pricing endpoints as every other
-// service category — scoped down here to just what the Flights page needs
-// (finding and editing the "flight" row), since the broader product catalog
-// this belonged to isn't part of this build.
+// ---- KYC ----
+// Tier upgrades are admin-reviewed: a submitted NIN/BVN sits pending until
+// an admin approves (tier changes immediately) or declines (with a reason
+// shown verbatim to the user) it. Tier limits are unchanged from before.
 
-export function getPricing() {
-  return request<{ data: PricingRule[] }>("/admin/pricing");
+export function getKycApplications(status?: string, type?: string) {
+  const params = new URLSearchParams();
+  if (status && status !== "all") params.set("status", status);
+  if (type && type !== "all") params.set("type", type);
+  const qs = params.toString();
+  return request<{ data: KycApplication[] }>(`/admin/kyc/applications${qs ? `?${qs}` : ""}`);
 }
 
-export function updatePricing(id: number | string, body: { marginType: string; marginValue: number }) {
-  return request<{ success: boolean }>(`/admin/pricing/${id}`, {
+// The only endpoint that ever reveals the decrypted NIN/BVN — every call is
+// written to the audit log.
+export function getKycApplicationDetail(id: number | string) {
+  return request<KycApplicationDetail>(`/admin/kyc/applications/${id}`);
+}
+
+export function approveKycApplication(id: number | string) {
+  return request<{ success: boolean; tier: string }>(`/admin/kyc/applications/${id}/approve`, {
+    method: "POST",
+  });
+}
+
+export function declineKycApplication(id: number | string, reason: string) {
+  return request<{ success: boolean }>(`/admin/kyc/applications/${id}/decline`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function getKycTierLimits() {
+  return request<{ data: KycTierLimit[] }>("/admin/kyc/tier-limits");
+}
+
+export function updateKycTierLimit(
+  tier: string,
+  body: { maxWalletBalance: number; maxSingleTransaction: number; maxDailyTotal: number }
+) {
+  return request<{ success: boolean }>(`/admin/kyc/tier-limits/${tier}`, {
     method: "PUT",
     body: JSON.stringify(body),
   });
