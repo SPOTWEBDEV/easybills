@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 247 247 245;
+  --bg-elevated: 255 255 255;
+  --fg: 18 21 29;
+  --fg-muted: 90 97 112;
+  --border: 228 228 221;
+  --card-notch: 247 247 245;
+
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+.dark {
+  --bg: 10 13 19;
+  --bg-elevated: 24 28 39;
+  --fg: 240 241 246;
+  --fg-muted: 158 164 181;
+  --border: 42 47 61;
+  --card-notch: 10 13 19;
+}
+
+* {
+  border-color: rgb(var(--border));
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
+  font-feature-settings: "cv11", "ss01";
+}
+
+::selection {
+  background-color: rgba(14, 168, 148, 0.25);
+}
+
+/* Perforated ticket-edge card — the signature motif, echoing the physical
+   scratch/recharge cards this platform sells. Used on balance + receipt cards. */
+.notch-card {
+  position: relative;
+  isolation: isolate;
+}
+.notch-card::before,
+.notch-card::after {
+  content: "";
+  position: absolute;
+  top: var(--notch-y, 50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: rgb(var(--card-notch));
+  transform: translateY(-50%);
+  z-index: 5;
+}
+.notch-card::before {
+  left: -11px;
+}
+.notch-card::after {
+  right: -11px;
+}
+.notch-card .notch-perf {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  transform: translateY(-50%);
+  border-top: 2px dashed rgba(var(--fg), 0.14);
+  z-index: 4;
+}
+
+.scratch-shimmer {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  background-size: 200% 100%;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
