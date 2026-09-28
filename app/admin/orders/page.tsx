@@ -12,8 +12,8 @@ import { Ticket, CheckCircle2, Clock, XCircle } from "lucide-react";
 
 const columns: Column<AdminTransactionRow>[] = [
   { key: "reference", header: "Order ID", render: (o) => <span className="font-mono text-xs">{o.reference}</span> },
-  { key: "customer", header: "Customer", render: (o) => o.customer },
-  { key: "service", header: "Item", render: (o) => o.service },
+  { key: "customer", header: "Customer", render: (o) => o.customerName },
+  { key: "service", header: "Item", render: (o) => o.title },
   { key: "amount", header: "Total", render: (o) => formatNaira(o.amount) },
   { key: "status", header: "Status", render: (o) => <StatusPill status={o.status} /> },
   { key: "date", header: "Placed", render: (o) => formatDate(o.date) },
@@ -42,7 +42,7 @@ export default function AdminOrdersPage() {
         {isLoading ? (
           <p className="py-10 text-center text-sm text-ink-500 dark:text-paper-200/40">Loading orders...</p>
         ) : (
-          <AdminDataTable columns={columns} data={list} searchKeys={["customer", "reference", "service"]} searchPlaceholder="Search orders..." />
+          <AdminDataTable columns={columns} data={list} searchKeys={["customerName", "reference", "title"]} searchPlaceholder="Search orders..." />
         )}
       </div>
     </AdminShell>

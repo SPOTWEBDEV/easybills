@@ -136,9 +136,9 @@ export default function AdminDashboardPage() {
                 recentOrders.slice(0, 5).map((order) => (
                   <div key={order.id} className="flex items-center justify-between rounded-xl px-2 py-2.5 hover:bg-ink-50 dark:hover:bg-ink-800/40">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">{order.customer}</p>
+                      <p className="truncate text-sm font-semibold">{order.customerName}</p>
                       <p className="truncate text-xs text-ink-500 dark:text-paper-200/40">
-                        {order.service} &middot; {formatDate(order.date)}
+                        {order.title} &middot; {formatDate(order.date)}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">

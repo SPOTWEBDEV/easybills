@@ -10,14 +10,17 @@ import {AdminCustomer} from "@/lib/mock-data/admin";
 import { formatNaira } from "@/lib/utils";
 import { Wallet, Users } from "lucide-react";
 
+import { AdminCustomerRow } from "@/lib/api/admin/customers"; // or wherever AdminCustomerRow is exported
 
-
-const columns: Column<AdminCustomer>[] = [
+// Change Column<AdminCustomer>[] to Column<AdminCustomerRow>[]
+const columns: Column<AdminCustomerRow>[] = [
   { key: "name", header: "Customer", render: (c) => c.name },
   { key: "email", header: "Email", render: (c) => <span className="text-ink-500 dark:text-paper-200/40">{c.email}</span> },
   { key: "walletBalance", header: "Balance", render: (c) => <span className="font-semibold">{formatNaira(c.walletBalance)}</span> },
   { key: "tier", header: "Tier", render: (c) => c.tier },
 ];
+
+
 
 export default function AdminWalletsPage() {
   const { data: customers, isLoading } = useQuery({ queryKey: ["admin-customers"], queryFn: adminCustomersApi.list });

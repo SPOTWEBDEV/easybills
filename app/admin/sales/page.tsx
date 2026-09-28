@@ -15,8 +15,8 @@ import { ShoppingCart, PackageCheck, PackageX, Clock } from "lucide-react";
 
 const columns: Column<AdminTransactionRow>[] = [
   { key: "reference", header: "Reference", render: (o) => <span className="font-mono text-xs">{o.reference}</span> },
-  { key: "customer", header: "Customer", render: (o) => o.customer },
-  { key: "service", header: "Service", render: (o) => o.service },
+  { key: "customer", header: "Customer", render: (o) => o.customerName },
+  { key: "service", header: "Service", render: (o) => o.title },
   { key: "amount", header: "Amount", render: (o) => formatNaira(o.amount) },
   { key: "status", header: "Status", render: (o) => <StatusPill status={o.status} /> },
   { key: "date", header: "Date", render: (o) => formatDate(o.date) },
@@ -70,7 +70,7 @@ export default function AdminSalesPage() {
         {isLoading ? (
           <p className="py-10 text-center text-sm text-ink-500 dark:text-paper-200/40">Loading sales...</p>
         ) : (
-          <AdminDataTable columns={columns} data={list} searchKeys={["customer", "reference", "service"]} searchPlaceholder="Search sales..." />
+          <AdminDataTable columns={columns} data={list} searchKeys={["customerName", "reference", "title"]} searchPlaceholder="Search sales..." />
         )}
       </div>
     </AdminShell>
