@@ -5,4 +5,4 @@ out
 .DS_Store
 *.tsbuildinfo
 update.txt
-.env
+config.bat
