@@ -43,7 +43,7 @@ export default function ElectricityServicePage() {
 
       <div className="flex flex-wrap items-center gap-3">
         <a
-          href="//download"
+          href="/download"
           className="inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-paper-50 transition-colors hover:bg-brand-600"
         >
           Get the app
