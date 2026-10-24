@@ -24,7 +24,7 @@ export function FinalCta() {
           bill.
         </p>
         <Button asChild size="lg">
-          <Link href="/register">
+          <Link href="/download">
             Create your free account <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>

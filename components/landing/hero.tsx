@@ -37,7 +37,7 @@ export function Hero() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/register">
+              <Link href="/download">
                 Create free account <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

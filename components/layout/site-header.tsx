@@ -41,7 +41,7 @@ export function SiteHeader() {
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
           <Link
-            href="/#download"
+            href="//download"
             className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-paper-50 transition-colors hover:bg-brand-600"
           >
             Get started
@@ -79,7 +79,7 @@ export function SiteHeader() {
               {theme === "dark" ? "Light mode" : "Dark mode"}
             </button>
             <Link
-              href="/#download"
+              href="//download"
               onClick={() => setMobileOpen(false)}
               className="inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-paper-50"
             >

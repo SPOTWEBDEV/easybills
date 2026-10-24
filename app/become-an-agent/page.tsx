@@ -14,7 +14,7 @@ export default function BecomeAgentPage() {
       </p>
       <div className="mt-8">
         <Button asChild size="lg">
-          <Link href="/register">Apply now</Link>
+          <Link href="/download">Apply now</Link>
         </Button>
       </div>
     </SimplePage>

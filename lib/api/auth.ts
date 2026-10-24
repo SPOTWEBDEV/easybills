@@ -28,7 +28,7 @@ export interface LoginResult {
 
 /**
  * Calls the real easybills-backend PHP API (see NEXT_PUBLIC_API_URL in
- * .env.local). Successful login/register/verify calls store the JWT in
+ * .env.local). Successful login/download/verify calls store the JWT in
  * localStorage via tokenStore, which apiFetch then attaches as a Bearer
  * token to every subsequent authenticated request.
  */
@@ -56,7 +56,7 @@ export const authApi = {
   },
 
   async register(payload: RegisterPayload): Promise<{ requiresOtp: boolean; phone: string }> {
-    return apiFetch("/api/v1/auth/register", {
+    return apiFetch("/api/v1/auth/download", {
       method: "POST",
       body: payload,
       auth: "none",
