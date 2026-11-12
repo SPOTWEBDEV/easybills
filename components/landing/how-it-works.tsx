@@ -8,17 +8,17 @@ const steps = [
   {
     icon: UserPlus,
     title: "Create your account",
-    body: "Sign up in under a minute with your phone number and verify with a one-time code.",
+    body: "Sign up in under a minute with your name, email and phone number. No waiting for a verification code.",
   },
   {
     icon: WalletMinimal,
     title: "Fund your wallet",
-    body: "Top up instantly via bank transfer, card, or your dedicated virtual account.",
+    body: "Top up instantly with your card or bank transfer through Paystack's secure checkout.",
   },
   {
     icon: ZapIcon,
     title: "Pay any bill, instantly",
-    body: "Pick a service, confirm the amount, and get your receipt — usually in under 5 seconds.",
+    body: "Pick a service, confirm with your PIN, and get your receipt — usually in under 5 seconds.",
   },
 ];
 

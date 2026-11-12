@@ -6,21 +6,25 @@ export const loginSchema = z.object({
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
+// Matches the mobile app: 8+ characters with letters and numbers, optional referral code.
 export const registerSchema = z
   .object({
-    fullName: z.string().min(3, "Enter your full name."),
+    fullName: z.string().trim().min(2, "Enter your full name."),
     email: z.string().email("Enter a valid email address."),
-    phone: z
+    phone: z.string().regex(/^0\d{10}$/, "Enter a valid 11-digit Nigerian phone number."),
+    password: z
       .string()
-      .regex(/^0\d{10}$/, "Enter a valid 11-digit Nigerian phone number."),
-    password: z.string().min(6, "Password must be at least 6 characters."),
+      .min(8, "Use 8+ characters, with letters and numbers.")
+      .regex(/[a-zA-Z]/, "Use 8+ characters, with letters and numbers.")
+      .regex(/[0-9]/, "Use 8+ characters, with letters and numbers."),
     confirmPassword: z.string(),
+    referralCode: z.string().trim().optional(),
     agreeToTerms: z.literal(true, {
-      errorMap: () => ({ message: "You must agree to the terms to continue." }),
+      errorMap: () => ({ message: "Please accept the Terms and Privacy Policy." }),
     }),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords don't match.",
     path: ["confirmPassword"],
   });
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -52,5 +56,3 @@ export const fundWalletSchema = z.object({
   amount: z.coerce.number().min(100, "Minimum funding amount is ₦100."),
 });
 export type FundWalletInput = z.infer<typeof fundWalletSchema>;
-
-

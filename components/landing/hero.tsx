@@ -37,7 +37,7 @@ export function Hero() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/download">
+              <Link href="/register">
                 Create free account <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -45,6 +45,17 @@ export function Hero() {
               <Link href="#services">Explore services</Link>
             </Button>
           </div>
+
+          <p className="mt-4 text-sm text-ink-600 dark:text-paper-200/60">
+            Already have an account?{" "}
+            <Link href="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+              Log in
+            </Link>
+            <span aria-hidden="true" className="mx-2">·</span>
+            <Link href="/download" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+              Get the Android app
+            </Link>
+          </p>
 
           <div className="mt-9 flex items-center gap-6 text-xs text-ink-600 dark:text-paper-200/50">
             <div className="flex items-center gap-1.5">

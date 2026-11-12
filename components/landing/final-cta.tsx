@@ -24,10 +24,20 @@ export function FinalCta() {
           bill.
         </p>
         <Button asChild size="lg">
-          <Link href="/download">
+          <Link href="/register">
             Create your free account <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
+        <p className="text-sm text-ink-600 dark:text-paper-200/60">
+          Already have an account?{" "}
+          <Link href="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+            Log in
+          </Link>
+          <span aria-hidden="true" className="mx-2">·</span>
+          <Link href="/download" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+            Get the Android app
+          </Link>
+        </p>
       </motion.div>
     </Section>
   );
