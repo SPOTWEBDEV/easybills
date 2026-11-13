@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 // Send visitors to the sign-up form with the code pre-filled (/register reads ?ref=).
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-export default async function ReferralRedirect({ params }: { params: Promise<{ code: string }> | { code: string } }) {
+export default async function ReferralRedirect({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const clean = decodeURIComponent(code ?? "").trim().toUpperCase();
   // Only pass through plausible codes; anything else just lands on a normal sign-up.

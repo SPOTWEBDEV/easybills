@@ -6,17 +6,20 @@ export const loginSchema = z.object({
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
+// Standalone so forgot-password and change-password can reuse it (registerSchema is a ZodEffects, which has no .shape).
+export const passwordSchema = z
+  .string()
+  .min(8, "Use 8+ characters, with letters and numbers.")
+  .regex(/[a-zA-Z]/, "Use 8+ characters, with letters and numbers.")
+  .regex(/[0-9]/, "Use 8+ characters, with letters and numbers.");
+
 // Matches the mobile app: 8+ characters with letters and numbers, optional referral code.
 export const registerSchema = z
   .object({
     fullName: z.string().trim().min(2, "Enter your full name."),
     email: z.string().email("Enter a valid email address."),
     phone: z.string().regex(/^0\d{10}$/, "Enter a valid 11-digit Nigerian phone number."),
-    password: z
-      .string()
-      .min(8, "Use 8+ characters, with letters and numbers.")
-      .regex(/[a-zA-Z]/, "Use 8+ characters, with letters and numbers.")
-      .regex(/[0-9]/, "Use 8+ characters, with letters and numbers."),
+    password: passwordSchema,
     confirmPassword: z.string(),
     referralCode: z.string().trim().optional(),
     agreeToTerms: z.literal(true, {

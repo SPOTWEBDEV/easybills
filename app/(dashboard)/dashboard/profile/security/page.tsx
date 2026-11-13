@@ -9,7 +9,7 @@ import { FormField, SubmitButton } from "@/components/dashboard/form-field";
 import { useAuth } from "@/components/dashboard/auth-context";
 import { securityApi } from "@/lib/api/dashboard";
 import { ApiError } from "@/lib/api-client";
-import { registerSchema } from "@/lib/validators/schemas";
+import { passwordSchema } from "@/lib/validators/schemas";
 
 const Ok = ({ children }: { children: React.ReactNode }) => <p role="status" className="text-sm font-semibold text-emerald-500">{children}</p>;
 const Err = ({ children }: { children: React.ReactNode }) => <p role="alert" className="text-sm text-red-500">{children}</p>;
@@ -28,7 +28,7 @@ export default function SecurityPage() {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!pw.current) errs.current = "Enter your current password";
-    const rule = registerSchema.shape.password.safeParse(pw.next);
+    const rule = passwordSchema.safeParse(pw.next);
     if (!rule.success) errs.next = rule.error.issues[0].message;
     if (pw.confirm !== pw.next) errs.confirm = "Passwords don't match";
     setPwErrors(errs);

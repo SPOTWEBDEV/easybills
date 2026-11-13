@@ -6,7 +6,7 @@ import { KeyRound, Lock, Mail } from "lucide-react";
 import { FormField, SubmitButton } from "@/components/dashboard/form-field";
 import { authApi } from "@/lib/api/dashboard";
 import { ApiError } from "@/lib/api-client";
-import { registerSchema } from "@/lib/validators/schemas";
+import { passwordSchema } from "@/lib/validators/schemas";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
 
   const reset = async (e: React.FormEvent) => {
     e.preventDefault(); setError("");
-    const pw = registerSchema.shape.password.safeParse(password);
+    const pw = passwordSchema.safeParse(password);
     if (!pw.success) return setError(pw.error.issues[0].message);
     setLoading(true);
     try { await authApi.resetPassword({ email: email.trim(), code: code.trim(), password }); router.replace("/login"); }
