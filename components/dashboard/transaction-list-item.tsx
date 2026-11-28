@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Smartphone, Wifi, Zap, Tv, Droplets, ArrowDownToLine, ArrowUpFromLine, GraduationCap, Dices } from "lucide-react";
+import {
+  Smartphone, Wifi, Zap, Tv, Droplets, ArrowDownToLine, GraduationCap, Dices, Gift, Plane, PhoneIncoming, CreditCard,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Transaction, TransactionCategory, TransactionStatus } from "@/lib/types";
 import { cn, formatDate, formatNaira } from "@/lib/utils";
@@ -13,6 +15,10 @@ const categoryIcons: Record<TransactionCategory, React.ElementType> = {
   "exam-pin": GraduationCap,
   "wallet-funding": ArrowDownToLine,
   betting: Dices,
+  "gift-card": Gift,
+  flight: Plane,
+  "virtual-number": PhoneIncoming,
+  "virtual-card": CreditCard,
 };
 
 const statusVariant: Record<TransactionStatus, "success" | "pending" | "failed"> = {
@@ -22,7 +28,7 @@ const statusVariant: Record<TransactionStatus, "success" | "pending" | "failed">
 };
 
 export function TransactionListItem({ transaction }: { transaction: Transaction }) {
-  const Icon = categoryIcons[transaction.category];
+  const Icon = categoryIcons[transaction.category] ?? Smartphone;
   const isCredit = transaction.category === "wallet-funding";
 
   return (

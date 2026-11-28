@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Receipt, Smartphone, Wifi, Zap, Tv, Droplets, GraduationCap, Wallet, Dices, type LucideIcon } from "lucide-react";
+import {
+  Receipt, Smartphone, Wifi, Zap, Tv, Droplets, GraduationCap, Wallet, Dices, Gift, Plane, PhoneIncoming, CreditCard, type LucideIcon,
+} from "lucide-react";
 import { cn, formatNaira } from "@/lib/utils";
 import type { Transaction, TransactionCategory } from "@/lib/types";
 import { isCreditCategory } from "@/lib/tx";
@@ -7,6 +9,7 @@ import { isCreditCategory } from "@/lib/tx";
 const ICONS: Record<TransactionCategory, LucideIcon> = {
   airtime: Smartphone, data: Wifi, electricity: Zap, cable: Tv,
   water: Droplets, "exam-pin": GraduationCap, "wallet-funding": Wallet, betting: Dices,
+  "gift-card": Gift, flight: Plane, "virtual-number": PhoneIncoming, "virtual-card": CreditCard,
 };
 const STATUS = {
   success: "bg-emerald-500/10 text-emerald-500",

@@ -6,6 +6,11 @@
  * Each function in lib/api/*.ts knows which shape to expect for its own
  * endpoint, so this client just handles the transport: base URL, JSON
  * headers, bearer token, and turning `{ error: "..." }` into a thrown Error.
+ *
+ * CHANGES in this version:
+ *  - `body` may be a FormData (used by POST /cards/cardholder). The JSON
+ *    Content-Type header is then NOT set so the browser adds the multipart boundary.
+ *  - ApiError now carries `requestId` (X-Request-Id header or payload.requestId).
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -43,11 +48,13 @@ export const tokenStore = {
 export class ApiError extends Error {
   status: number;
   payload: unknown;
-  constructor(message: string, status: number, payload?: unknown) {
+  requestId?: string;
+  constructor(message: string, status: number, payload?: unknown, requestId?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.payload = payload;
+    this.requestId = requestId;
   }
 }
 
@@ -73,7 +80,8 @@ function buildUrl(path: string, query?: RequestOptions["query"]): string {
 export async function apiFetch<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, auth = "user", query } = options;
 
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const isForm = typeof FormData !== "undefined" && body instanceof FormData;
+  const headers: Record<string, string> = isForm ? {} : { "Content-Type": "application/json" };
 
   if (auth === "user") {
     const token = tokenStore.getUserToken();
@@ -86,7 +94,7 @@ export async function apiFetch<T = unknown>(path: string, options: RequestOption
   const res = await fetch(buildUrl(path, query), {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),
   });
 
   let json: unknown = null;
@@ -101,7 +109,10 @@ export async function apiFetch<T = unknown>(path: string, options: RequestOption
       (json && typeof json === "object" && "error" in json && typeof (json as any).error === "string"
         ? (json as any).error
         : null) ?? `Request failed (${res.status})`;
-    throw new ApiError(message, res.status, json);
+    const requestId =
+      res.headers.get("X-Request-Id") ??
+      (json && typeof json === "object" && typeof (json as any).requestId === "string" ? (json as any).requestId : undefined);
+    throw new ApiError(message, res.status, json, requestId ?? undefined);
   }
 
   return json as T;

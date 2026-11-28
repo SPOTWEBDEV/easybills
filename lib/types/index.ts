@@ -8,7 +8,11 @@ export type TransactionCategory =
   | "water"
   | "exam-pin"
   | "wallet-funding"
-  | "betting";
+  | "betting"
+  | "gift-card"
+  | "flight"
+  | "virtual-number"
+  | "virtual-card";
 
 export interface Transaction {
   id: string;

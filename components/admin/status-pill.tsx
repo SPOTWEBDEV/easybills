@@ -10,6 +10,7 @@ const STATUS_MAP: Record<string, "success" | "pending" | "failed" | "neutral" | 
   resolved: "success",
   verified: "success",
   approved: "success",
+  confirmed: "success",
 
   pending: "pending",
   sending: "pending",
@@ -26,6 +27,7 @@ const STATUS_MAP: Record<string, "success" | "pending" | "failed" | "neutral" | 
   unverified: "failed",
   high: "failed",
   declined: "failed",
+  cancelled: "failed",
 
   medium: "pending",
   low: "neutral",

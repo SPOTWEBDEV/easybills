@@ -12,30 +12,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Users, Gift, TrendingUp } from "lucide-react";
-import { formatDate, formatNaira } from "@/lib/utils";
+import { formatNaira } from "@/lib/utils";
+import { useAdminRole } from "@/hooks/use-admin-role";
 import { adminReferralProgramApi } from "@/lib/api/admin/referral-program";
 
 interface TopReferrer {
-  id: string;
+  id: string; // the API has no id for referrers: the email is unique
   name: string;
+  email: string;
   invites: number;
+  conversions: number;
   earned: number;
-  lastReferral: string;
 }
 
 const columns: Column<TopReferrer>[] = [
-  { key: "name", header: "User", render: (r) => <span className="font-semibold">{r.name}</span> },
-  { key: "invites", header: "Successful invites", render: (r) => r.invites.toString() },
+  { key: "name", header: "User", render: (r) => (<div><p className="font-semibold">{r.name}</p><p className="text-xs text-ink-500 dark:text-paper-200/40">{r.email}</p></div>) },
+  { key: "invites", header: "Invites", render: (r) => r.invites.toString() },
+  { key: "conversions", header: "Converted", render: (r) => r.conversions.toString() },
   { key: "earned", header: "Total earned", render: (r) => formatNaira(r.earned) },
-  { key: "lastReferral", header: "Last referral", render: (r) => formatDate(r.lastReferral) },
 ];
 
 export default function AdminReferralProgramPage() {
   const queryClient = useQueryClient();
-  const { data: overview, isLoading } = useQuery({
-    queryKey: ["admin-referral-program"],
-    queryFn: adminReferralProgramApi.overview,
-  });
+  const { isSuperAdmin } = useAdminRole();
+  const { data: overview, isLoading } = useQuery({ queryKey: ["admin-referral-program"], queryFn: adminReferralProgramApi.overview });
 
   const [referrerReward, setReferrerReward] = useState(0);
   const [referredReward, setReferredReward] = useState(0);
@@ -49,21 +49,26 @@ export default function AdminReferralProgramPage() {
   }, [overview]);
 
   const handleSave = async () => {
+    if (referrerReward < 0 || referredReward < 0) return toast.error("Rewards can't be negative (use 0 to disable a side).");
     setSaving(true);
     try {
       await adminReferralProgramApi.updateSettings({ referrerReward, referredReward });
       queryClient.invalidateQueries({ queryKey: ["admin-referral-program"] });
-      toast.success("Referral program settings saved");
+      toast.success("Saved — applies to future payouts immediately");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not save settings.");
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
+
+  const top: TopReferrer[] = (overview?.topReferrers ?? []).map((r) => ({ ...r, id: r.email }));
 
   return (
     <AdminShell>
-      <AdminPageHeading title="Referral Program" subtitle="Configure and monitor the user referral program" action={<Button onClick={handleSave} loading={saving}>Save changes</Button>} />
+      <AdminPageHeading
+        title="Referral Program"
+        subtitle="Configure and monitor the user referral program"
+        action={<Button onClick={handleSave} loading={saving} disabled={!isSuperAdmin}>Save changes</Button>}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <AdminStatCard label="Total referrals" value={overview ? overview.stats.totalReferrals.toString() : "—"} icon={Users} />
@@ -74,26 +79,19 @@ export default function AdminReferralProgramPage() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Program settings</CardTitle>
-          <CardDescription>Reward given to both the referrer and the new user. This is live — it affects real payouts immediately.</CardDescription>
+          <CardDescription>
+            Reward given to both people when the new user completes their first successful purchase. Set a side to 0 to disable it.
+            Changes apply immediately to future payouts.{!isSuperAdmin && " Only super admins can change these."}
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 pt-2 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Referrer reward</Label>
-            <Input
-              type="number"
-              value={referrerReward}
-              onChange={(e) => setReferrerReward(Number(e.target.value))}
-              leftIcon={<span className="text-sm font-semibold">₦</span>}
-            />
+            <Input type="number" min={0} disabled={!isSuperAdmin} value={referrerReward} onChange={(e) => setReferrerReward(Number(e.target.value))} leftIcon={<span className="text-sm font-semibold">₦</span>} />
           </div>
           <div className="space-y-1.5">
             <Label>New user reward</Label>
-            <Input
-              type="number"
-              value={referredReward}
-              onChange={(e) => setReferredReward(Number(e.target.value))}
-              leftIcon={<span className="text-sm font-semibold">₦</span>}
-            />
+            <Input type="number" min={0} disabled={!isSuperAdmin} value={referredReward} onChange={(e) => setReferredReward(Number(e.target.value))} leftIcon={<span className="text-sm font-semibold">₦</span>} />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Reward trigger</Label>
@@ -106,10 +104,10 @@ export default function AdminReferralProgramPage() {
         <h2 className="mb-3 text-sm font-semibold text-ink-600 dark:text-paper-200/60">Top referrers</h2>
         {isLoading ? (
           <p className="py-10 text-center text-sm text-ink-500 dark:text-paper-200/40">Loading...</p>
-        ) : !overview || overview.topReferrers.length === 0 ? (
+        ) : top.length === 0 ? (
           <p className="py-10 text-center text-sm text-ink-500 dark:text-paper-200/40">No referrals yet.</p>
         ) : (
-          <AdminDataTable columns={columns} data={overview.topReferrers} searchKeys={["name"]} searchPlaceholder="Search referrers..." />
+          <AdminDataTable columns={columns} data={top} searchKeys={["name", "email"]} searchPlaceholder="Search referrers..." />
         )}
       </div>
     </AdminShell>

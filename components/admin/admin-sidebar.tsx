@@ -2,18 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard, BarChart3, TrendingUp, ShoppingCart, Receipt, Package,
-  Wallet, Gift, Plane, Radio, Bell, Users, Percent, Tag, ShieldCheck,
-  SlidersHorizontal, X, type LucideIcon,
+  Wallet, Plane, Radio, Bell, Users, Percent, Tag, ShieldCheck,
+  DollarSign, Bug, X, type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
+import { useAdminRole } from "@/hooks/use-admin-role";
+import { adminErrorLogsApi } from "@/lib/api/admin/error-logs";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
   label: string;
-  href: string;
+  href: string; // relative to /admin ("/" = the dashboard)
   icon: LucideIcon;
+  superAdminOnly?: boolean;
+  badgeKey?: "errors";
 };
 
 type NavGroup = {
@@ -23,6 +28,7 @@ type NavGroup = {
 
 // Static navigation config — no DB fetch. Order reflects priority both
 // across groups and within each group.
+// Removed per the API doc (section 19, item 12): Gift Cards (brand / stock / sell-trade pages never worked against the backend).
 const NAV_GROUPS: NavGroup[] = [
   {
     group: "Overview",
@@ -39,7 +45,6 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Transactions", href: "/transactions", icon: Receipt },
       { label: "Orders", href: "/orders", icon: Package },
       { label: "Wallets", href: "/wallets", icon: Wallet },
-      { label: "Gift Cards", href: "/gift-cards", icon: Gift },
       { label: "Flights", href: "/flights", icon: Plane },
       { label: "Providers", href: "/providers", icon: Radio },
       { label: "Notifications", href: "/notifications", icon: Bell },
@@ -56,19 +61,29 @@ const NAV_GROUPS: NavGroup[] = [
     group: "Settings",
     items: [
       { label: "Pricing", href: "/pricing", icon: Tag },
+      { label: "FX Rates", href: "/fx-rates", icon: DollarSign },
       { label: "KYC", href: "/kyc", icon: ShieldCheck },
     ],
   },
   {
-    group: "Configuration",
+    group: "System",
     items: [
-      { label: "Navigation", href: "/admin/settings/navigation", icon: SlidersHorizontal },
+      { label: "Error Logs", href: "/error-logs", icon: Bug, superAdminOnly: true, badgeKey: "errors" },
     ],
   },
 ];
 
 export function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
+  const { isSuperAdmin } = useAdminRole();
+
+  // Red badge on "Error Logs": unresolved total. Error logs are super admin only, so other roles never call it.
+  const { data: errorCount } = useQuery({
+    queryKey: ["admin-error-badge"],
+    queryFn: async () => (await adminErrorLogsApi.list({ resolved: "0", perPage: 1 })).summary.unresolvedTotal,
+    enabled: isSuperAdmin,
+    refetchInterval: 60_000,
+  });
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-ink-900 border-r border-ink-200/60 dark:border-ink-700/60">
@@ -84,35 +99,46 @@ export function AdminSidebar({ onClose }: { onClose?: () => void }) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-6 no-scrollbar">
-        {NAV_GROUPS.map(({ group, items }) => (
-          <div key={group} className="mb-5">
-            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-400 dark:text-paper-200/30">
-              {group}
-            </p>
-            <div className="space-y-0.5">
-              {items.map((item) => {
-                const Icon = item.icon;
-                const active = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={`/admin${item.href}`}
-                    onClick={onClose}
-                    className={cn(
-                      "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-                      active
-                        ? "bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
-                        : "text-ink-600 dark:text-paper-200/60 hover:bg-ink-100 dark:hover:bg-ink-800"
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
+        {NAV_GROUPS.map(({ group, items }) => {
+          const visible = items.filter((i) => !i.superAdminOnly || isSuperAdmin);
+          if (visible.length === 0) return null;
+          return (
+            <div key={group} className="mb-5">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-400 dark:text-paper-200/30">
+                {group}
+              </p>
+              <div className="space-y-0.5">
+                {visible.map((item) => {
+                  const Icon = item.icon;
+                  const full = item.href === "/" ? "/admin" : `/admin${item.href}`;
+                  const active = pathname === full || (item.href !== "/" && pathname.startsWith(full + "/"));
+                  const badge = item.badgeKey === "errors" ? errorCount ?? 0 : 0;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={full}
+                      onClick={onClose}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                        active
+                          ? "bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
+                          : "text-ink-600 dark:text-paper-200/60 hover:bg-ink-100 dark:hover:bg-ink-800"
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                      {badge > 0 && (
+                        <span className="ml-auto rounded-full bg-coral-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                          {badge > 99 ? "99+" : badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
